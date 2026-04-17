@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revalida — Gerenciar Estações</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#181c26;--bg3:#1e2332;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--text:#e8eaf0;--text2:#8b91a8;--text3:#555c72;--accent:#4fc3f7;--accent2:#0288d1;--green:#66bb6a;--red:#ef5350;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--r:8px;--rl:12px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.app{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
+h1{font-size:1.6rem;font-weight:600;letter-spacing:-.02em}
+h2{font-size:1.1rem;font-weight:500}
+.muted{color:var(--text2)}.small{font-size:.8rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:.875rem}
+.clabel{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+button{cursor:pointer;font-family:var(--sans)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;font-size:.875rem;font-weight:500;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{background:var(--bg3)}
+.btn:active{transform:scale(.98)}
+.btn-p{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.btn-p:hover{background:#0399d4}
+.btn-d{border-color:rgba(239,83,80,.4);color:var(--red)}
+.btn-d:hover{background:rgba(239,83,80,.1)}
+.btn-sm{padding:5px 12px;font-size:.8rem}
+.ilabel{font-size:.8rem;color:var(--text2);margin-bottom:.4rem;display:block;margin-top:.875rem}
+.ilabel:first-child{margin-top:0}
+.tinput{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:.875rem;transition:border-color .15s}
+.tinput:focus{outline:none;border-color:var(--accent)}
+select.tinput{cursor:pointer}
+textarea.tinput{resize:vertical;min-height:380px;font-family:var(--mono);font-size:.78rem;line-height:1.7}
+/* station list */
+.srow{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);gap:1rem}
+.srow:last-child{border-bottom:none}
+.srow .area{font-family:var(--mono);font-size:.68rem;color:var(--text3);margin-bottom:2px}
+.srow .name{font-size:.9rem;font-weight:500}
+.srow .actions{display:flex;gap:8px;flex-shrink:0}
+/* image upload */
+.img-zone{border:1px dashed var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;font-size:.85rem;color:var(--text2);cursor:pointer;transition:border-color .15s;margin-top:.875rem}
+.img-zone:hover{border-color:var(--accent)}
+.img-previews{display:flex;flex-wrap:wrap;gap:8px;margin-top:.75rem}
+.img-prev{position:relative;width:80px;height:80px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.img-prev img{width:100%;height:100%;object-fit:cover}
+.img-prev button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;width:18px;height:18px;border-radius:3px;font-size:11px;display:flex;align-items:center;justify-content:center}
+/* help box */
+.help{background:rgba(79,195,247,.06);border:1px solid rgba(79,195,247,.15);border-radius:var(--r);padding:1rem;font-size:.8rem;color:var(--text2);line-height:1.8;margin-bottom:.875rem}
+.help code{font-family:var(--mono);color:var(--accent);font-size:.75rem}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+    <div>
+      <div style="font-family:var(--mono);font-size:.7rem;color:var(--text3);letter-spacing:.15em;margin-bottom:.35rem">REVALIDA · OSCE</div>
+      <h1>Gerenciar Estações</h1>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="showForm()">+ Nova estação</button>
+      <a href="index.html" class="btn">← Simulador</a>
+    </div>
+  </div>
+
+  <!-- STATION LIST -->
+  <div id="list-view">
+    <div class="card">
+      <div class="clabel">Estações cadastradas</div>
+      <div id="station-rows"><p class="small muted" style="padding:.5rem 0">Nenhuma estação ainda.</p></div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div id="form-view" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
+      <h2 id="form-title">Nova estação</h2>
+      <button class="btn" onclick="showList()">← Voltar</button>
+    </div>
+
+    <div class="help">
+      <strong style="color:var(--accent)">Como preencher o campo "Informações da Estação"</strong><br>
+      Cole todas as informações no campo abaixo usando os marcadores em maiúsculas:<br><br>
+      <code>NOME DA ESTAÇÃO:</code> nome da estação<br>
+      <code>NÍVEL DE ATENÇÃO:</code> primária / secundária / terciária<br>
+      <code>LOCAL:</code> tipo de unidade<br>
+      <code>INFRAESTRUTURA:</code> recursos disponíveis<br>
+      <code>DESCRIÇÃO DO CASO:</code> texto do caso clínico<br>
+      <code>DADOS DO PACIENTE (ATOR):</code><br>
+      &nbsp;&nbsp;Nome: X | Idade: X | Profissão: X | Estado civil: X<br>
+      &nbsp;&nbsp;Queixa principal: texto<br>
+      <code>ORIENTAÇÕES AO MÉDICO:</code> lista de tarefas<br>
+      <code>EXAME FÍSICO (Impresso 1):</code> Parâmetro: valor (um por linha)<br>
+      <code>ORIENTAÇÕES AO CHEFE:</code> (opcional)<br>
+      <code>CHECKLIST PEP:</code> (ver formato abaixo)<br><br>
+      <strong style="color:var(--accent)">Formato do Checklist PEP</strong> — uma linha por item:<br>
+      <code>ID|pontos separados por ;|rótulos separados por ;|texto do critério|padrões kw separados por ,|padrões parciais</code><br><br>
+      Exemplo: <code>5|0;1.0|Inadequado;Adequado|Verbaliza diagnóstico de pneumotórax|pneumot.{0,6}rax.{0,18}(hiper\|tension)|</code>
+    </div>
+
+    <div class="card">
+      <label class="ilabel">Área *</label>
+      <select id="f-area" class="tinput">
+        <option>Clínica</option>
+        <option>Cirurgia</option>
+        <option>Ginecologia</option>
+        <option>Pediatria</option>
+        <option>Medicina de Família/Comunidade</option>
+      </select>
+
+      <label class="ilabel">Nome da estação *</label>
+      <input type="text" id="f-name" class="tinput" placeholder="Ex: Atendimento Inicial do Trauma — Pneumotórax Hipertensivo">
+
+      <label class="ilabel">Informações da estação *</label>
+      <textarea id="f-raw" class="tinput" placeholder="Cole aqui todas as informações da estação conforme o formato descrito acima..."></textarea>
+
+      <label class="ilabel">Imagens de exames (opcional)</label>
+      <div class="img-zone" onclick="document.getElementById('img-input').click()" ondragover="e=>e.preventDefault()" ondrop="handleDrop(event)">
+        Clique ou arraste imagens de exames aqui (JPG, PNG, PDF como imagem)
+      </div>
+      <input type="file" id="img-input" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+      <div class="img-previews" id="img-previews"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-p" onclick="saveStation()">Salvar estação</button>
+      <button class="btn" onclick="showList()">Cancelar</button>
+    </div>
+
+    <input type="hidden" id="f-id" value="">
+  </div>
+</div>
+
+<script>
+function getStations(){try{return JSON.parse(localStorage.getItem('rv_stations')||'[]')}catch{return[]}}
+function setStations(s){localStorage.setItem('rv_stations',JSON.stringify(s))}
+
+let editImages=[]; // {name, dataUrl}
+
+function showList(){
+  document.getElementById('list-view').style.display='block';
+  document.getElementById('form-view').style.display='none';
+  renderList();
+}
+
+function showForm(id){
+  document.getElementById('list-view').style.display='none';
+  document.getElementById('form-view').style.display='block';
+  editImages=[];
+  document.getElementById('img-previews').innerHTML='';
+  if(id){
+    const s=getStations().find(x=>x.id===id);
+    if(!s)return;
+    document.getElementById('form-title').textContent='Editar estação';
+    document.getElementById('f-id').value=id;
+    document.getElementById('f-area').value=s.area;
+    document.getElementById('f-name').value=s.name;
+    document.getElementById('f-raw').value=s.raw||'';
+    (s.images||[]).forEach(img=>addImagePreview(img.name,img.dataUrl));
+  }else{
+    document.getElementById('form-title').textContent='Nova estação';
+    document.getElementById('f-id').value='';
+    document.getElementById('f-area').value='Clínica';
+    document.getElementById('f-name').value='';
+    document.getElementById('f-raw').value='';
+  }
+}
+
+function renderList(){
+  const stations=getStations();
+  const el=document.getElementById('station-rows');
+  if(!stations.length){el.innerHTML='<p class="small muted" style="padding:.5rem 0">Nenhuma estação ainda.</p>';return}
+  el.innerHTML=stations.map(s=>`
+    <div class="srow">
+      <div><div class="area">${esc(s.area)}</div><div class="name">${esc(s.name)}</div></div>
+      <div class="actions">
+        <button class="btn btn-sm" onclick="showForm(${s.id})">Editar</button>
+        <button class="btn btn-sm btn-d" onclick="deleteStation(${s.id})">Excluir</button>
+      </div>
+    </div>`).join('');
+}
+
+function saveStation(){
+  const area=document.getElementById('f-area').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  const raw=document.getElementById('f-raw').value.trim();
+  if(!name||!raw){alert('Preencha o nome e as informações da estação.');return}
+  const stations=getStations();
+  const eid=document.getElementById('f-id').value;
+  if(eid){
+    const i=stations.findIndex(s=>s.id===+eid);
+    if(i>=0)stations[i]={...stations[i],area,name,raw,images:editImages};
+  }else{
+    stations.push({id:Date.now(),area,name,raw,images:editImages});
+  }
+  setStations(stations);
+  alert('Estação salva com sucesso!');
+  showList();
+}
+
+function deleteStation(id){
+  if(!confirm('Excluir esta estação?'))return;
+  setStations(getStations().filter(s=>s.id!==id));
+  renderList();
+}
+
+function handleFiles(files){
+  Array.from(files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>addImagePreview(f.name,e.target.result);
+    reader.readAsDataURL(f);
+  });
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  handleFiles(e.dataTransfer.files);
+}
+
+function addImagePreview(name,dataUrl){
+  editImages.push({name,dataUrl});
+  const idx=editImages.length-1;
+  const prev=document.getElementById('img-previews');
+  const d=document.createElement('div');d.className='img-prev';d.id='prev-'+idx;
+  d.innerHTML=`<img src="${dataUrl}" alt="${esc(name)}"><button onclick="removeImage(${idx})">×</button>`;
+  prev.appendChild(d);
+}
+
+function removeImage(idx){
+  editImages.splice(idx,1);
+  // re-render previews
+  const prev=document.getElementById('img-previews');
+  prev.innerHTML='';
+  editImages.forEach((img,i)=>{
+    const d=document.createElement('div');d.className='img-prev';
+    d.innerHTML=`<img src="${img.dataUrl}" alt="${esc(img.name)}"><button onclick="removeImage(${i})">×</button>`;
+    prev.appendChild(d);
+  });
+}
+
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+window.addEventListener('load',showList);
+</script>
+</body>
+</html>
