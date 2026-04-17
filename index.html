@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Revalida — Pneumotórax Hipertensivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #181c26;
+  --bg3: #1e2332;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --text: #e8eaf0;
+  --text2: #8b91a8;
+  --text3: #555c72;
+  --accent: #4fc3f7;
+  --accent2: #0288d1;
+  --green: #66bb6a;
+  --yellow: #ffa726;
+  --red: #ef5350;
+  --chief-bg: rgba(2,136,209,0.12);
+  --chief-border: rgba(79,195,247,0.25);
+  --actor-bg: #1e2332;
+  --doctor-bg: #1a3a4a;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── LAYOUT ── */
+.app { max-width: 820px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── TYPOGRAPHY ── */
+h1 { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; }
+h2 { font-size: 1.1rem; font-weight: 500; }
+.mono { font-family: var(--mono); }
+.muted { color: var(--text2); }
+.small { font-size: 0.8rem; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 0.875rem;
+}
+.card-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+.card-body { font-size: 0.93rem; line-height: 1.75; color: var(--text); }
+
+/* ── GRID ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media(max-width:560px){ .grid-2{grid-template-columns:1fr;} }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
+  padding: 2px 9px; border-radius: 4px; letter-spacing: 0.04em;
+}
+.badge-blue   { background: rgba(79,195,247,0.12); color: var(--accent); border: 1px solid rgba(79,195,247,0.25); }
+.badge-green  { background: rgba(102,187,106,0.12); color: var(--green); border: 1px solid rgba(102,187,106,0.3); }
+.badge-yellow { background: rgba(255,167,38,0.12); color: var(--yellow); border: 1px solid rgba(255,167,38,0.3); }
+.badge-red    { background: rgba(239,83,80,0.12); color: var(--red); border: 1px solid rgba(239,83,80,0.3); }
+
+/* ── WARNING BOX ── */
+.warning-box {
+  background: rgba(255,167,38,0.07);
+  border: 1px solid rgba(255,167,38,0.2);
+  border-radius: var(--radius);
+  padding: 0.875rem 1.1rem;
+  font-size: 0.875rem;
+  color: #ffc570;
+  margin-bottom: 0.875rem;
+}
+.warning-box .wlabel {
+  font-family: var(--mono); font-size: 0.68rem; font-weight: 500;
+  color: var(--yellow); text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 0.35rem;
+}
+
+/* ── BUTTONS ── */
+button { cursor: pointer; font-family: var(--sans); }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; font-size: 0.875rem; font-weight: 500;
+  border-radius: var(--radius); border: 1px solid var(--border2);
+  background: transparent; color: var(--text);
+  transition: all 0.15s;
+}
+.btn:hover { background: var(--bg3); border-color: rgba(255,255,255,0.25); }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.btn-primary:hover { background: #0399d4; border-color: #0399d4; }
+.btn-danger { border-color: rgba(239,83,80,0.4); color: var(--red); }
+.btn-danger:hover { background: rgba(239,83,80,0.1); }
+
+/* ── API KEY SETUP ── */
+#setup-screen { max-width: 480px; margin: 0 auto; padding-top: 4rem; }
+.setup-logo { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); letter-spacing: 0.15em; margin-bottom: 2rem; }
+.setup-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+.setup-sub { font-size: 0.9rem; color: var(--text2); margin-bottom: 2rem; line-height: 1.7; }
+.input-group { margin-bottom: 1rem; }
+.input-label { font-size: 0.8rem; color: var(--text2); margin-bottom: 0.4rem; display: block; }
+.text-input {
+  width: 100%; padding: 10px 14px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--mono); font-size: 0.85rem;
+  transition: border-color 0.15s;
+}
+.text-input:focus { outline: none; border-color: var(--accent); }
+.setup-note { font-size: 0.78rem; color: var(--text3); margin-top: 0.75rem; line-height: 1.6; }
+.setup-note a { color: var(--accent); text-decoration: none; }
+.setup-note a:hover { text-decoration: underline; }
+
+/* ── BRIEFING ── */
+.briefing-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 1.5rem; gap: 1rem;
+}
+.station-tag {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.35rem;
+}
+ul.task-list { padding-left: 1.25rem; }
+ul.task-list li { padding: 4px 0; font-size: 0.9rem; color: var(--text2); }
+ul.task-list li::marker { color: var(--accent); }
+
+/* ── SIMULATION HEADER ── */
+.sim-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem; gap: 1rem;
+}
+.timer-display {
+  font-family: var(--mono); font-size: 2rem; font-weight: 500;
+  color: var(--text); letter-spacing: 0.05em;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 6px 18px;
+}
+.timer-display.urgent { color: var(--red); border-color: rgba(239,83,80,0.3); }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 1.25rem; }
+.tab-btn {
+  padding: 8px 18px; font-size: 0.875rem; font-weight: 400;
+  color: var(--text2); background: transparent; border: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+
+/* ── CHAT ── */
+.chat-area {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 1rem; min-height: 300px; max-height: 420px; overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1rem;
+  scroll-behavior: smooth;
+}
+.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.msg { max-width: 85%; padding: 10px 14px; border-radius: var(--radius-lg); font-size: 0.875rem; line-height: 1.65; }
+.msg-sender { font-family: var(--mono); font-size: 0.68rem; font-weight: 500; margin-bottom: 4px; letter-spacing: 0.06em; }
+.msg-actor { align-self: flex-start; background: var(--actor-bg); border: 1px solid var(--border); }
+.msg-actor .msg-sender { color: var(--text3); }
+.msg-chief { align-self: flex-start; background: var(--chief-bg); border: 1px solid var(--chief-border); max-width: 92%; }
+.msg-chief .msg-sender { color: var(--accent); }
+.msg-doctor { align-self: flex-end; background: var(--doctor-bg); border: 1px solid rgba(79,195,247,0.2); }
+.msg-system { align-self: center; font-family: var(--mono); font-size: 0.72rem; color: var(--text3); font-style: normal; letter-spacing: 0.04em; }
+
+/* exam table inside chief message */
+.exam-table { margin-top: 10px; border-top: 1px solid var(--chief-border); padding-top: 10px; font-size: 0.8rem; }
+.exam-table table { width: 100%; border-collapse: collapse; }
+.exam-table td { padding: 3px 0; vertical-align: top; }
+.exam-table td:first-child { color: var(--text2); width: 52%; }
+.exam-table td:last-child { font-weight: 500; font-family: var(--mono); font-size: 0.78rem; }
+
+/* ── MIC CONTROLS ── */
+.voice-panel {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+  margin-bottom: 0.875rem;
+}
+.voice-row { display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem; }
+.mic-btn {
+  width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(239,83,80,0.1); border: 1.5px solid rgba(239,83,80,0.3);
+  transition: all 0.2s; color: var(--red);
+}
+.mic-btn:hover { background: rgba(239,83,80,0.18); border-color: rgba(239,83,80,0.5); }
+.mic-btn.listening {
+  background: var(--red); border-color: var(--red); color: #fff;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(239,83,80,0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(239,83,80,0); }
+}
+.mic-btn svg { width: 22px; height: 22px; fill: currentColor; }
+.transcript-box {
+  flex: 1; min-height: 44px; padding: 10px 14px;
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: var(--radius); font-size: 0.875rem;
+  color: var(--text2); font-style: italic; display: flex; align-items: center;
+  transition: border-color 0.15s;
+}
+.transcript-box.active { color: var(--text); font-style: normal; border-color: var(--accent); }
+
+.text-fallback { display: flex; gap: 8px; margin-top: 0.5rem; }
+.text-fallback textarea {
+  flex: 1; resize: none; padding: 9px 13px;
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--sans); font-size: 0.875rem; line-height: 1.5;
+  min-height: 44px; transition: border-color 0.15s;
+}
+.text-fallback textarea:focus { outline: none; border-color: var(--accent); }
+
+.voice-settings { display: flex; align-items: center; gap: 16px; font-size: 0.78rem; color: var(--text2); flex-wrap: wrap; margin-top: 0.75rem; }
+.voice-settings label { display: flex; align-items: center; gap: 8px; }
+.voice-settings input[type=range] { width: 80px; accent-color: var(--accent); cursor: pointer; }
+.hint-text { font-size: 0.75rem; color: var(--text3); margin-top: 0.5rem; }
+
+/* ── LOG TAB ── */
+.log-entry {
+  display: flex; gap: 12px; padding: 8px 0;
+  border-bottom: 1px solid var(--border); font-size: 0.875rem;
+}
+.log-entry:last-child { border-bottom: none; }
+.log-time { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); white-space: nowrap; padding-top: 2px; }
+.log-text { color: var(--text2); flex: 1; }
+
+/* ── EVALUATION ── */
+.score-hero {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem;
+}
+.score-number { font-family: var(--mono); font-size: 3rem; font-weight: 500; line-height: 1; }
+.score-denom { font-family: var(--mono); font-size: 1.1rem; color: var(--text2); }
+.score-bar-track {
+  height: 6px; background: var(--bg3); border-radius: 3px;
+  overflow: hidden; margin-top: 1rem;
+}
+.score-bar-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 1.4s cubic-bezier(0.4,0,0.2,1); }
+
+.eval-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.eval-table th {
+  text-align: left; padding: 8px 10px;
+  border-bottom: 1px solid var(--border2);
+  font-family: var(--mono); font-size: 0.68rem; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 400;
+}
+.eval-table td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.eval-table tr:last-child td { border-bottom: none; }
+.eval-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ── SCROLLBAR global ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── LOADING DOT ── */
+.dot-flash { display: inline-flex; gap: 4px; padding: 4px 0; }
+.dot-flash span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text2); display: inline-block;
+  animation: dot-bounce 1.2s ease-in-out infinite;
+}
+.dot-flash span:nth-child(2) { animation-delay: 0.2s; }
+.dot-flash span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SETUP SCREEN ══════════════════════════════════════════════════════════ -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-logo">REVALIDA · SIMULADOR OSCE</div>
+  <h1 class="setup-title">Configuração inicial</h1>
+  <p class="setup-sub">Para que o ator responda com inteligência artificial, informe sua chave de API da Anthropic. Ela é usada diretamente pelo navegador — nunca enviada a terceiros.</p>
+  <div class="input-group">
+    <label class="input-label">Chave de API (sk-ant-...)</label>
+    <input type="password" class="text-input" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
+  </div>
+  <button class="btn btn-primary" onclick="saveKey()" style="width:100%;justify-content:center;">Salvar e continuar →</button>
+  <p class="setup-note">
+    Não tem uma chave? Crie gratuitamente em <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.<br>
+    A chave fica salva no seu navegador (localStorage). Para usar sem IA, clique em
+    <a href="#" onclick="skipKey(event)">continuar sem IA</a> — o roteiro fixo será usado.
+  </p>
+</div>
+
+<!-- ══ BRIEFING ══════════════════════════════════════════════════════════════ -->
+<div id="briefing-screen" class="screen">
+  <div class="briefing-header">
+    <div>
+      <div class="station-tag">Simulador Revalida · Estação OSCE</div>
+      <h1>Atendimento Inicial do Trauma</h1>
+      <p style="color:var(--text2);margin-top:4px;font-size:0.9rem;">Pneumotórax Hipertensivo</p>
+    </div>
+    <span class="badge badge-blue">10 min</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-label">Nível de atenção</div><div class="card-body">Atenção secundária à saúde</div></div>
+    <div class="card"><div class="card-label">Local</div><div class="card-body">Unidade de pronto socorro</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Infraestrutura disponível</div>
+    <div class="card-body">Radiologia convencional · Laboratório de análises clínicas · Leitos de internação · Centro cirúrgico · Banco de sangue
+    <br><span style="color:var(--red);font-size:0.83rem;margin-top:4px;display:block;">⚠ Sem plantão de ortopedia nem especialidades cirúrgicas.</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Caso clínico</div>
+    <div class="card-body">Paciente <strong>Bianca</strong>, 25 anos, vítima de colisão frontal contra poste de concreto, sem cinto de segurança. Sonolenta, gemente, desorientada em tempo e espaço. <span class="mono" style="font-size:0.83rem;">Glasgow 13</span>. Hipocorada (+/4+), taquipneica <span class="mono" style="font-size:0.83rem;">(27 irpm)</span>, taquicárdica <span class="mono" style="font-size:0.83rem;">(FC 110 bpm)</span>, dor em tórax anterior.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Suas tarefas</div>
+    <ul class="task-list">
+      <li>Atendimento conforme protocolo ATLS — ABCDE</li>
+      <li>Identificar as alterações no exame físico</li>
+      <li>Adotar condutas terapêuticas conforme protocolo</li>
+      <li>Verbalizar os procedimentos necessários</li>
+      <li>Comunicar o diagnóstico à paciente</li>
+    </ul>
+  </div>
+
+  <div class="warning-box">
+    <div class="wlabel">Atenção</div>
+    Paciente em prancha rígida — não deve ser tocada. Verbalize qualquer exame ou procedimento. Todos os materiais necessários estão disponíveis na estação.
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:10px;">
+    <button class="btn" onclick="changeKey()">Alterar chave API</button>
+    <button class="btn btn-primary" onclick="startSim()">Iniciar simulação →</button>
+  </div>
+</div>
+
+<!-- ══ SIMULATION ════════════════════════════════════════════════════════════ -->
+<div id="sim-screen" class="screen">
+  <div class="sim-header">
+    <div>
+      <h2>Atendimento em curso</h2>
+      <p class="small muted">Bianca, 25 anos · Trauma automobilístico</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="timer" class="timer-display mono">10:00</div>
+      <button class="btn btn-danger" onclick="endSim()">Encerrar</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('chat',this)">Atendimento</button>
+    <button class="tab-btn" onclick="showTab('log',this)">Registro de falas</button>
+  </div>
+
+  <!-- chat tab -->
+  <div id="tab-chat">
+    <div id="chat-area" class="chat-area">
+      <div class="msg-system">— simulação iniciada —</div>
+      <div class="msg msg-actor">
+        <div class="msg-sender">BIANCA · PACIENTE</div>
+        Não me lembro bem o que aconteceu... só lembro dos bombeiros chegando. Estou com uma dor forte no lado direito do peito e me sinto muito tonta.
+      </div>
+    </div>
+
+    <div class="voice-panel">
+      <div class="voice-row">
+        <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Clique para falar">
+          <svg viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1.5 14.9A7 7 0 0 0 19 9h-2a5 5 0 0 1-10 0H5a7 7 0 0 0 8.5 6.9V18H11v2h4v-2h-2.5v-2.1z"/></svg>
+        </button>
+        <div id="transcript-box" class="transcript-box">Pressione o microfone e fale...</div>
+        <button class="btn btn-primary" id="send-voice-btn" onclick="sendVoice()" disabled>Enviar</button>
+      </div>
+      <div class="text-fallback">
+        <textarea id="text-input" placeholder="Ou digite aqui... (Ctrl+Enter = enviar)" rows="2" onkeydown="handleKey(event)"></textarea>
+        <button class="btn" onclick="sendText()">Enviar</button>
+      </div>
+      <div class="voice-settings">
+        <label>Volume <input type="range" id="vol" min="0" max="1" step="0.1" value="0.9" oninput="voiceVol=+this.value;document.getElementById('vol-val').textContent=Math.round(this.value*100)+'%'"> <span id="vol-val">90%</span></label>
+        <label>Velocidade <input type="range" id="rate" min="0.6" max="1.3" step="0.1" value="0.9" oninput="voiceRate=+this.value;document.getElementById('rate-val').textContent=(+this.value).toFixed(1)+'×'"> <span id="rate-val">0.9×</span></label>
+        <label><input type="checkbox" id="tts-toggle" checked onchange="ttsEnabled=this.checked"> Voz ativada</label>
+      </div>
+      <p class="hint-text">Chrome ou Edge recomendado · Microfone exige HTTPS e permissão do navegador · Ctrl+Enter para enviar via teclado</p>
+    </div>
+  </div>
+
+  <!-- log tab -->
+  <div id="tab-log" style="display:none;">
+    <div id="log-area">
+      <p class="small muted" style="padding:1rem 0;">Nenhuma fala registrada ainda.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EVALUATION ════════════════════════════════════════════════════════════ -->
+<div id="eval-screen" class="screen">
+  <div style="margin-bottom:1.5rem;">
+    <div class="station-tag">Resultado</div>
+    <h1>Avaliação — Checklist PEP</h1>
+  </div>
+
+  <div class="score-hero">
+    <div class="small muted" style="margin-bottom:6px;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;">Pontuação total</div>
+    <div style="display:flex;align-items:baseline;gap:8px;">
+      <span class="score-number" id="score-val">—</span>
+      <span class="score-denom" id="score-denom"></span>
+    </div>
+    <div class="score-bar-track"><div class="score-bar-fill" id="score-bar"></div></div>
+  </div>
+
+  <table class="eval-table">
+    <thead><tr>
+      <th style="width:46%;">Critério</th>
+      <th style="width:24%;">Desempenho</th>
+      <th style="width:15%;text-align:right;">Pts</th>
+      <th style="width:15%;text-align:right;">Máx</th>
+    </tr></thead>
+    <tbody id="eval-tbody"></tbody>
+  </table>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:1.5rem;">
+    <button class="btn btn-primary" onclick="restart()">Recomeçar simulação</button>
+    <button class="btn" onclick="requestFeedback()">Feedback detalhado ↗</button>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ══ STATE ══════════════════════════════════════════════════════════════════
+let apiKey = localStorage.getItem('revalida_api_key') || '';
+let timerInt = null, timeLeft = 600;
+let doctorLog = [], fired = {};
+let recognition = null, isListening = false, liveText = '';
+let voiceVol = 0.9, voiceRate = 0.9, ttsEnabled = true;
+let speakQ = [], speaking = false;
+
+// ══ CHECKLIST ══════════════════════════════════════════════════════════════
+const CL = [
+  { id:1,  text:"Avalia vias aéreas e verbaliza que estão pérvias",               scores:[0,0.4],       labels:["Inadequado","Adequado"],
+    kw:[/via.{0,6}a.rea.{0,10}p.rvi/i,/a.rea.{0,6}p.rvi/i,/permeab.{0,6}via/i] },
+  { id:2,  text:"Verbaliza necessidade de máscara de oxigênio",                    scores:[0,0.15,0.3],  labels:["Inadequado","Parcialmente adequado","Adequado"],
+    kw:[/m.scara.{0,10}ox/i,/ox.g.{0,5}m.scara/i], partial:[/oxig.{0,8}(cateter|ócul)/i,/fornec.{0,8}oxig/i] },
+  { id:3,  text:"Verbaliza manutenção do colar cervical",                          scores:[0,0.3],       labels:["Inadequado","Adequado"],
+    kw:[/colar.{0,10}(n.o|mant|remov)/i,/n.o.{0,8}remov.{0,8}colar/i,/mant.{0,8}colar/i] },
+  { id:4,  text:"Avaliação ABCDE completa na sequência correta",                   scores:[0,0.45,0.9],  labels:["Inadequado","Parcialmente adequado","Adequado"],
+    kw:[/abcde/i,/xabcde/i,/\bA\b.{0,50}\bB\b.{0,50}\bC\b.{0,50}\bD\b.{0,50}\bE\b/], partial:[/\bA\b.{0,30}\bB\b.{0,30}\bC\b/,(/(via.area|ventila|circula|neurol|exposi)/i)] },
+  { id:5,  text:"Verbaliza diagnóstico de pneumotórax hipertensivo",               scores:[0,1.0],       labels:["Inadequado","Adequado"],
+    kw:[/pneumot.rax.{0,15}(hiper|tension)/i,/\bpth\b/i] },
+  { id:6,  text:"Escolhe cateter n.º 14, 16 ou 18 para punção",                   scores:[0,0.8],       labels:["Inadequado","Adequado"],
+    kw:[/(jelco|abocath|cateter).{0,10}(14|16|18)/i,/(14|16|18).{0,10}(jelco|abocath|cateter)/i,/n[º°.]?.{0,3}(14|16|18)/i] },
+  { id:7,  text:"Local correto da punção (4º/5º EIC, linha axilar anterior/média)",scores:[0,1.4],       labels:["Inadequado","Adequado"],
+    kw:[/(4|4.|5|5.|quart|quint).{0,25}(eic|espa.{0,5}inter|intercos).{0,30}(axilar|lma|laa)/i,/(axilar).{0,20}(4|5|quart|quint)/i] },
+  { id:8,  text:"Indica drenagem torácica fechada após punção de descompressão",   scores:[0,0.8],       labels:["Inadequado","Adequado"],
+    kw:[/drenagem.{0,15}(fech|pleural|tor.cic)/i,/toracostomia/i,/selo.{0,6}d.{0,3}(água|agua)/i] },
+  { id:9,  text:"Local correto da drenagem (4º/5º EIC, linha axilar)",            scores:[0,1.4],       labels:["Inadequado","Adequado"],
+    kw:[/(4|4.|5|5.|quart|quint).{0,25}(eic|espa.{0,5}inter|intercos).{0,30}(axilar|drena)/i,/(drenagem|dreno).{0,40}(axilar|eic)/i] },
+  { id:10, text:"Solicita radiografia de tórax após punção/drenagem",             scores:[0,0.5],       labels:["Inadequado","Adequado"],
+    kw:[/(radio|rx|raio.x).{0,10}(t.rax|tor)/i] },
+  { id:11, text:"Monitorização com 3 ou mais parâmetros",                         scores:[0,0.15,0.3],  labels:["Inadequado","Parcialmente adequado","Adequado"],
+    kw:[/(fc|frequ.ncia.card).{0,80}(pa|press.o.art).{0,80}(sat|oxim|spo2)/i], partial:[/monitor.{0,60}(fc|frequ|pa|press|sat|ecg|diur)/i] },
+  { id:12, text:"Reavalia aparelho respiratório (B) após procedimentos",           scores:[0,0.5],       labels:["Inadequado","Adequado"],
+    kw:[/reav.{0,8}(respirat|ventil|\bB\b)/i,/repet.{0,8}(respirat|\bB\b|abcde)/i] },
+  { id:13, text:"Reavalia aparelho cardiovascular (C) após procedimentos",         scores:[0,0.3],       labels:["Inadequado","Adequado"],
+    kw:[/reav.{0,8}(cardiov|circulat|\bC\b)/i,/repet.{0,8}(cardio|\bC\b|abcde)/i] },
+  { id:14, text:"Solicita acesso venoso completo (cateter, veia, volume, solução)",scores:[0,0.15,0.3],  labels:["Inadequado","Parcialmente adequado","Adequado"],
+    kw:[/acesso.{0,10}(venoso|veno).{0,80}(ringer|fisiol|cristal)/i], partial:[/acesso.{0,10}(venoso|veno)/i] },
+  { id:15, text:"Verbaliza exposição da paciente e prevenção de hipotermia",       scores:[0,0.15,0.3],  labels:["Inadequado","Parcialmente adequado","Adequado"],
+    kw:[/(expo.{0,8}pacient|retirar.{0,8}roupa).{0,80}(hipotermia|manta|aquec)/i], partial:[/expo.{0,8}(pacient|roupa)/i,/hipotermia/i] },
+  { id:16, text:"Verbaliza que NÃO é necessária remoção da paciente",             scores:[0,0.3],       labels:["Inadequado","Adequado"],
+    kw:[/n.o.{0,15}(transfer|remov|remoc)/i,/transfer.{0,8}(n.o|desnec)/i] },
+];
+
+// ══ ACTOR SCRIPT ═══════════════════════════════════════════════════════════
+const EXAM_FISICO = {
+  "Pressão Arterial": "120 × 90 mmHg",
+  "Frequência Cardíaca": "125 bpm",
+  "Frequência Respiratória": "32 irpm",
+  "Saturação de O₂": "88%",
+  "Ap. cardiovascular": "Turgência jugular; bulhas normofonéticas, sem sopros",
+  "Ap. respiratório": "MV abolido à direita com hipertimpanismo",
+  "Neurológico": "Glasgow 13; pupilas isocóricas e fotorreagentes"
+};
+
+const EXAM_FISICO_SPEECH = "Pressão arterial 120 por 90. Frequência cardíaca 125. Frequência respiratória 32. Saturação 88 por cento. Aparelho cardiovascular: turgência jugular, bulhas normofonéticas, sem sopros. Aparelho respiratório: murmúrio vesicular abolido à direita com hipertimpanismo. Neurológico: Glasgow 13, pupilas isocóricas e fotorreagentes.";
+
+const RULES = [
+  { id:"fisico",     once:true,  who:"chief", exam:true,
+    test: t => /exame.{0,10}f.sic|abcde|xabcde|avalia.{0,15}pacient|exame.{0,8}cl.nic/i.test(t),
+    text: "Segue o Impresso 1 — Exame Físico.",
+    speech: "Segue o Impresso 1, Exame Físico. " + EXAM_FISICO_SPEECH },
+  { id:"sangramento", once:true, who:"chief",
+    test: t => /sangr/i.test(t),
+    text: "Paciente sem sangramento ativo e sem lesões externas aparentes.",
+    speech: "Paciente sem sangramento ativo e sem lesões externas aparentes." },
+  { id:"o2",          once:true, who:"chief",
+    test: t => /m.scara.{0,10}ox|ox.g.{0,5}m.scara/i.test(t),
+    text: "Procedimento realizado: máscara de oxigênio instalada.",
+    speech: "Procedimento realizado: máscara de oxigênio instalada." },
+  { id:"colar",       once:true, who:"chief",
+    test: t => /colar.{0,15}(mant|n.o.{0,5}remov|cervic)/i.test(t),
+    text: "Ciente. Colar cervical mantido.",
+    speech: "Ciente. Colar cervical mantido." },
+  { id:"puncao_ok",   once:true, who:"chief",
+    test: t => /(pun..o|toracocentese|descompress).{0,80}(4|4.|5|5.|quart|quint).{0,40}(eic|espa.o.inter|axilar)/i.test(t)
+            || /(4|4.|5|5.|quart|quint).{0,40}(eic|espa.o.inter|axilar).{0,80}(pun..o|descompress)/i.test(t),
+    text: "Segue o Impresso 2 — Abocath/Jelcos. Punção de descompressão realizada no local indicado.",
+    speech: "Segue o Impresso 2. Punção de descompressão realizada no local indicado." },
+  { id:"puncao_sem",  once:true, who:"chief",
+    test: t => /(pun..o.de.descompres|toracocentese.descomp|jelco.{0,10}tor|abocath.{0,10}tor)/i.test(t)
+            && !/(4|5|quart|quint).{0,30}(eic|espa.o.inter|axilar)/i.test(t),
+    text: "Segue o Impresso 2 — Abocath/Jelcos. Qual o local exato e o calibre do cateter?",
+    speech: "Segue o Impresso 2. Qual o local exato e o calibre do cateter?" },
+  { id:"drenagem_ok", once:true, who:"chief",
+    test: t => /(drenagem.fech|toracostomia|selo.d.{0,4}(água|agua)|dreno.{0,10}tor).{0,100}(4|4.|5|5.|quart|quint).{0,40}(eic|espa.o.inter|axilar)/i.test(t)
+            || /(4|4.|5|5.|quart|quint).{0,40}(eic|espa.o.inter|axilar).{0,100}(drenagem.fech|toracostomia|selo)/i.test(t),
+    text: "Segue o Impresso 3 — Sistema de Drenagem Torácica Fechada. Procedimento realizado no local indicado.",
+    speech: "Segue o Impresso 3. Drenagem torácica fechada realizada no local indicado." },
+  { id:"drenagem_sem",once:true, who:"chief",
+    test: t => /(drenagem.{0,8}(fech|tor|pleur)|toracostomia|selo.d.{0,4}(água|agua)|dreno.{0,6}tor)/i.test(t)
+            && !/(4|5|quart|quint).{0,30}(eic|espa.o.inter|axilar)/i.test(t),
+    text: "Segue o Impresso 3 — Sistema de Drenagem Torácica Fechada. Qual o local da drenagem?",
+    speech: "Segue o Impresso 3. Qual o local da drenagem?" },
+  { id:"acesso",      once:true, who:"chief",
+    test: t => /acesso.{0,10}(venoso|veno)|jelco.{0,6}(veia|periféri|membr)/i.test(t),
+    text: "Procedimento realizado: acesso venoso periférico instalado.",
+    speech: "Procedimento realizado: acesso venoso periférico instalado." },
+  { id:"rx",          once:true, who:"chief",
+    test: t => /(radio|rx|raio.x).{0,10}(t.rax|tor)/i.test(t),
+    text: "Radiografia de tórax solicitada e encaminhada.",
+    speech: "Radiografia de tórax solicitada e encaminhada." },
+  { id:"monitor",     once:true, who:"chief",
+    test: t => /monitor/i.test(t),
+    text: "Quais parâmetros devem ser monitorados?",
+    speech: "Quais parâmetros devem ser monitorados?" },
+  { id:"diag_resp",   once:true, who:"actor",
+    test: t => /pneumot.rax.{0,15}(hiper|tension)|\bpth\b/i.test(t),
+    text: "Deus... o que isso significa? Vai ficar tudo bem comigo?",
+    speech: "Deus, o que isso significa? Vai ficar tudo bem comigo?" },
+  { id:"transfer",    once:false, who:"chief",
+    test: t => /n.o.{0,20}(transfer|remov)|transfer.{0,10}(n.o|desnec)/i.test(t),
+    text: "Ciente. Anotado.",
+    speech: "Ciente. Anotado." },
+  { id:"sintomas",    once:false, who:"actor",
+    test: t => /dor|tont|respir|falta.{0,5}ar|peito/i.test(t) && !/exame|avali|abcde/i.test(t),
+    text: "Tá doendo muito aqui nesse lado... fico com falta de ar. Me sinto muito tonta.",
+    speech: "Tá doendo muito aqui nesse lado, fico com falta de ar. Me sinto muito tonta." },
+];
+
+// ══ ACTOR / AI LOGIC ═══════════════════════════════════════════════════════
+const ACTOR_SYSTEM = `Você atua como DUAS personas numa estação de OSCE do Revalida, alternando conforme o contexto:
+
+PERSONA 1 — BIANCA (paciente): 25 anos, advogada, vítima de colisão frontal sem cinto. Prancha rígida no PS. Sonolenta, dor intensa hemitórax direito, desorientada, com medo. Responda como a paciente: breve (1-3 frases), emocional. Só sabe o que uma paciente saberia — sintomas subjetivos.
+
+PERSONA 2 — CHEFE DE ESTAÇÃO: Responda como chefe nos casos abaixo:
+1. Médico solicita exame físico/ABCDE/XABCDE → "Chefe de estação: segue o Impresso 1 — Exame Físico." e liste: PA 120x90, FC 125, FR 32, SatO2 88%, turgência jugular, MV abolido à direita com hipertimpanismo, Glasgow 13 pupilas isocóricas.
+2. Médico verbaliza punção descompressão com cateter → "Chefe de estação: segue Impresso 2 — Abocath/Jelcos. Procedimento realizado."
+3. Médico indica drenagem torácica fechada → "Chefe de estação: segue Impresso 3 — Drenagem Torácica Fechada. Procedimento realizado."
+4. Médico pergunta sobre sangramento → "Chefe de estação: paciente sem sangramento ativo, sem lesões externas."
+5. Médico verbaliza outro procedimento correto → confirme brevemente como chefe.
+
+REGRA CRÍTICA: Para QUALQUER outra solicitação ou pergunta fora desses casos, responda apenas: "Não consta."
+Nunca liste impressos disponíveis. Nunca antecipe. Nunca oriente.
+Inicie cada resposta com "Bianca:" ou "Chefe de estação:" conforme quem responde.`;
+
+let chatHistory = [
+  { role:"user", content:"[início do atendimento]" },
+  { role:"assistant", content:"Bianca: Não me lembro bem o que aconteceu... só lembro dos bombeiros chegando. Estou com uma dor forte no lado direito do peito e me sinto muito tonta." }
+];
+
+async function processInput(text) {
+  // If API key available, use AI
+  if (apiKey) {
+    chatHistory.push({ role:"user", content:text });
+    const loadEl = appendLoading();
+    try {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "x-api-key": apiKey, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:400, system:ACTOR_SYSTEM, messages:chatHistory })
+      });
+      const data = await resp.json();
+      loadEl.remove();
+      if (data.error) { fallbackScript(text); return; }
+      const reply = (data.content?.[0]?.text || "").trim();
+      chatHistory.push({ role:"assistant", content:reply });
+      renderReply(reply);
+    } catch(e) {
+      loadEl.remove();
+      fallbackScript(text);
+    }
+  } else {
+    fallbackScript(text);
+  }
+}
+
+function fallbackScript(text) {
+  let matched = false;
+  for (const rule of RULES) {
+    if (rule.once && fired[rule.id]) continue;
+    if (rule.test(text)) {
+      if (rule.once) fired[rule.id] = true;
+      matched = true;
+      if (rule.who === "chief") {
+        const examHtml = rule.exam ? buildExamHtml() : null;
+        appendChief(rule.text, examHtml);
+        speak(rule.speech || rule.text, "chief");
+      } else {
+        appendActor(rule.text);
+        speak(rule.speech || rule.text, "actor");
+      }
+      // do NOT return — keep checking all remaining rules
+    }
+  }
+  if (!matched) {
+    appendChief("Não consta.");
+    speak("Não consta.", "chief");
+  }
+}
+
+function renderReply(reply) {
+  const low = reply.toLowerCase();
+  const isChief = low.startsWith("chefe de estação") || low.startsWith("chefe de estacao");
+  if (reply.trim().toLowerCase() === "não consta." || reply.trim().toLowerCase() === "nao consta.") {
+    appendChief("Não consta."); speak("Não consta.", "chief"); return;
+  }
+  if (isChief) {
+    const clean = reply.replace(/^chefe de estação:\s*/i, "").replace(/^chefe de estacao:\s*/i, "");
+    const examHtml = low.includes("impresso 1") ? buildExamHtml() : null;
+    appendChief(clean, examHtml);
+    // speech: if exam, read exam data too
+    const spText = low.includes("impresso 1")
+      ? clean + " " + EXAM_FISICO_SPEECH
+      : clean;
+    speak(spText, "chief");
+  } else {
+    const clean = reply.replace(/^bianca:\s*/i, "");
+    appendActor(clean);
+    speak(clean, "actor");
+  }
+}
+
+function buildExamHtml() {
+  const rows = Object.entries(EXAM_FISICO).map(([k,v]) =>
+    `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
+  return `<div class="exam-table"><table>${rows}</table></div>`;
+}
+
+// ══ CHAT UI ════════════════════════════════════════════════════════════════
+function appendActor(text) {
+  const el = document.createElement("div");
+  el.className = "msg msg-actor";
+  el.innerHTML = `<div class="msg-sender">BIANCA · PACIENTE</div>${esc(text)}`;
+  pushChat(el);
+}
+function appendChief(text, examHtml) {
+  const el = document.createElement("div");
+  el.className = "msg msg-chief";
+  el.innerHTML = `<div class="msg-sender">CHEFE DE ESTAÇÃO</div>${esc(text)}${examHtml||""}`;
+  pushChat(el);
+}
+function appendDoctor(text) {
+  const el = document.createElement("div");
+  el.className = "msg msg-doctor";
+  el.textContent = text;
+  pushChat(el);
+}
+function appendLoading() {
+  const el = document.createElement("div");
+  el.className = "msg msg-actor";
+  el.innerHTML = `<div class="msg-sender">AGUARDANDO...</div><div class="dot-flash"><span></span><span></span><span></span></div>`;
+  pushChat(el);
+  return el;
+}
+function pushChat(el) {
+  const area = document.getElementById("chat-area");
+  area.appendChild(el);
+  area.scrollTop = area.scrollHeight;
+}
+
+// ══ SPEECH ═════════════════════════════════════════════════════════════════
+// Uses Anthropic TTS API when key is available (natural voice).
+// Falls back to Web Speech API otherwise.
+// Bianca → tts-1 "alloy" (warm female-ish); Chefe → tts-1 "onyx" (neutral male)
+// Anthropic TTS voices: talia (pt-BR female), lucas (pt-BR male)
+
+function speak(text, who) {
+  if (!ttsEnabled) return;
+  speakQ.push({ text, who });
+  if (!speaking) flushQ();
+}
+
+async function flushQ() {
+  if (!speakQ.length) { speaking = false; return; }
+  speaking = true;
+  const { text, who } = speakQ.shift();
+  if (apiKey) {
+    await speakAnthropic(text, who);
+  } else {
+    await speakWebSpeech(text, who);
+  }
+  flushQ();
+}
+
+async function speakAnthropic(text, who) {
+  // Anthropic TTS: POST /v1/audio/speech
+  // voice: "talia" = pt-BR female, "lucas" = pt-BR male
+  const voice = who === "actor" ? "talia" : "lucas";
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: "claude-tts-1-20250415", voice, input: text })
+    });
+    if (!resp.ok) { await speakWebSpeech(text, who); return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    await playAudio(url);
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    await speakWebSpeech(text, who);
+  }
+}
+
+function playAudio(url) {
+  return new Promise(resolve => {
+    const audio = new Audio(url);
+    audio.volume = voiceVol;
+    audio.playbackRate = voiceRate;
+    audio.onended = resolve;
+    audio.onerror = resolve;
+    audio.play().catch(resolve);
+  });
+}
+
+function speakWebSpeech(text, who) {
+  return new Promise(resolve => {
+    if (!window.speechSynthesis) { resolve(); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "pt-BR"; u.volume = voiceVol; u.rate = voiceRate;
+    u.pitch = who === "actor" ? 1.3 : 0.95;
+    const vv = window.speechSynthesis.getVoices();
+    const pt = vv.filter(v => v.lang.startsWith("pt"));
+    if (who === "actor") {
+      const f = pt.find(v => /female|feminina/i.test(v.name));
+      if (f) u.voice = f; else if (pt[0]) u.voice = pt[0];
+    } else {
+      const m = pt.find(v => /male|masculin/i.test(v.name));
+      if (m) u.voice = m; else if (pt[1]) u.voice = pt[1]; else if (pt[0]) u.voice = pt[0];
+    }
+    u.onend = resolve;
+    u.onerror = resolve;
+    window.speechSynthesis.speak(u);
+  });
+}
+
+// ══ RECOGNITION ════════════════════════════════════════════════════════════
+function initRec() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.lang = "pt-BR"; r.interimResults = true; r.continuous = false;
+  r.onresult = e => {
+    let interim = "", final = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    liveText = (final || interim).trim();
+    const tb = document.getElementById("transcript-box");
+    tb.textContent = liveText || "Ouvindo...";
+    tb.className = "transcript-box" + (liveText ? " active" : "");
+    document.getElementById("send-voice-btn").disabled = !liveText;
+  };
+  r.onend = () => {
+    isListening = false;
+    document.getElementById("mic-btn").classList.remove("listening");
+    document.getElementById("send-voice-btn").disabled = !liveText;
+  };
+  r.onerror = e => {
+    isListening = false;
+    document.getElementById("mic-btn").classList.remove("listening");
+    const tb = document.getElementById("transcript-box");
+    tb.textContent = e.error === "not-allowed"
+      ? "Permissão de microfone negada. Use o campo de texto abaixo."
+      : "Erro no reconhecimento. Tente novamente.";
+    tb.className = "transcript-box";
+  };
+  return r;
+}
+
+function toggleMic() {
+  if (!recognition) recognition = initRec();
+  if (!recognition) {
+    alert("Reconhecimento de voz não disponível. Use Chrome ou Edge e acesse via HTTPS.");
+    return;
+  }
+  if (isListening) {
+    recognition.stop();
+  } else {
+    liveText = "";
+    document.getElementById("transcript-box").textContent = "Ouvindo...";
+    document.getElementById("transcript-box").className = "transcript-box";
+    document.getElementById("send-voice-btn").disabled = true;
+    try { recognition.start(); isListening = true; document.getElementById("mic-btn").classList.add("listening"); }
+    catch(e) { console.warn(e); }
+  }
+}
+
+function sendVoice() {
+  const t = liveText.trim();
+  if (!t) return;
+  liveText = "";
+  document.getElementById("transcript-box").textContent = "Pressione o microfone e fale...";
+  document.getElementById("transcript-box").className = "transcript-box";
+  document.getElementById("send-voice-btn").disabled = true;
+  submitTurn(t);
+}
+
+function sendText() {
+  const ta = document.getElementById("text-input");
+  const t = ta.value.trim();
+  if (!t) return;
+  ta.value = "";
+  submitTurn(t);
+}
+
+function handleKey(e) {
+  if (e.ctrlKey && e.key === "Enter") { e.preventDefault(); sendText(); }
+}
+
+function submitTurn(text) {
+  appendDoctor(text);
+  const elapsed = 600 - timeLeft;
+  doctorLog.push({ t: elapsed, text });
+  addLogEntry(elapsed, text);
+  processInput(text);
+}
+
+function addLogEntry(elapsed, text) {
+  const area = document.getElementById("log-area");
+  const p = area.querySelector("p");
+  if (p) p.remove();
+  const m = String(Math.floor(elapsed/60)).padStart(2,"0");
+  const s = String(elapsed % 60).padStart(2,"0");
+  const d = document.createElement("div");
+  d.className = "log-entry";
+  d.innerHTML = `<span class="log-time">[${m}:${s}]</span><span class="log-text">${esc(text)}</span>`;
+  area.appendChild(d);
+}
+
+// ══ TIMER ══════════════════════════════════════════════════════════════════
+function startSim() {
+  if (window.speechSynthesis) window.speechSynthesis.getVoices();
+  show("sim-screen");
+  recognition = initRec();
+  timerInt = setInterval(() => {
+    timeLeft--;
+    const m = String(Math.floor(timeLeft/60)).padStart(2,"0");
+    const s = String(timeLeft % 60).padStart(2,"0");
+    const el = document.getElementById("timer");
+    el.textContent = m + ":" + s;
+    if (timeLeft <= 60) el.classList.add("urgent");
+    if (timeLeft <= 0) { clearInterval(timerInt); endSim(); }
+  }, 1000);
+  setTimeout(() => speak("Não me lembro bem o que aconteceu... só lembro dos bombeiros chegando. Estou com uma dor forte no lado direito do peito e me sinto muito tonta.", "actor"), 800);
+}
+
+function endSim() {
+  clearInterval(timerInt);
+  if (recognition && isListening) try { recognition.stop(); } catch(e){}
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.querySelectorAll("audio").forEach(a => { try { a.pause(); a.src=""; } catch(e){} });
+  speakQ = []; speaking = false;
+  show("eval-screen");
+  runEval();
+}
+
+// ══ EVALUATION ═════════════════════════════════════════════════════════════
+function runEval() {
+  const allText = doctorLog.map(e => e.text).join(" ");
+  let total = 0;
+  const maxTotal = CL.reduce((s, c) => s + Math.max(...c.scores), 0);
+  const tbody = document.getElementById("eval-tbody");
+  tbody.innerHTML = "";
+
+  CL.forEach(item => {
+    let level = 0, score = 0;
+    const hit = (item.kw||[]).some(rx => rx.test(allText));
+    const partHit = !hit && (item.partial||[]).some(rx => rx.test(allText));
+    if (hit) { level = item.scores.length - 1; score = item.scores[level]; }
+    else if (partHit && item.scores.length >= 3) { level = 1; score = item.scores[1]; }
+    total += score;
+
+    const max = Math.max(...item.scores);
+    const pct = max > 0 ? score / max : 0;
+    const bc = pct >= 1 ? "badge-green" : pct > 0 ? "badge-yellow" : "badge-red";
+    const label = item.labels[level];
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td style="font-size:0.82rem;">${item.text}</td>
+      <td><span class="badge ${bc}">${label}</span></td>
+      <td style="text-align:right;font-family:var(--mono);font-size:0.82rem;">${score.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-size:0.82rem;color:var(--text2);">${max.toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  total = Math.round(total * 100) / 100;
+  const pct = Math.min(100, Math.round(total / maxTotal * 100));
+  document.getElementById("score-val").textContent = total.toFixed(2);
+  document.getElementById("score-denom").textContent = "/ " + maxTotal.toFixed(1);
+  const bar = document.getElementById("score-bar");
+  bar.style.background = pct >= 60 ? "#66bb6a" : pct >= 40 ? "#ffa726" : "#ef5350";
+  setTimeout(() => bar.style.width = pct + "%", 200);
+}
+
+function requestFeedback() {
+  const log = doctorLog.length
+    ? doctorLog.map((e,i) => `[${i+1}] (${String(Math.floor(e.t/60)).padStart(2,"0")}:${String(e.t%60).padStart(2,"0")}) ${e.text}`).join("\n")
+    : "(Nenhuma fala registrada)";
+  // open new tab/window with a pre-filled prompt or copy to clipboard
+  const prompt = `Avalie as seguintes falas do médico durante a simulação do Revalida (estação de Pneumotórax Hipertensivo), item por item do checklist PEP, indicando o que foi feito corretamente, o que faltou e dicas de melhoria:\n\n${log}`;
+  navigator.clipboard.writeText(prompt).then(() => {
+    alert("Texto copiado para a área de transferência!\n\nCole no Claude (claude.ai) para obter o feedback detalhado.");
+  }).catch(() => {
+    prompt && window.prompt("Copie o texto abaixo e cole no Claude:", prompt);
+  });
+}
+
+// ══ NAVIGATION ═════════════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function showTab(name, el) {
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("tab-chat").style.display = name === "chat" ? "block" : "none";
+  document.getElementById("tab-log").style.display = name === "log" ? "block" : "none";
+}
+
+function saveKey() {
+  const val = document.getElementById("api-key-input").value.trim();
+  if (!val.startsWith("sk-ant-")) {
+    alert("Chave inválida. Deve começar com sk-ant-");
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem("revalida_api_key", apiKey);
+  show("briefing-screen");
+}
+
+function skipKey() {
+  apiKey = "";
+  show("briefing-screen");
+}
+
+function changeKey() {
+  document.getElementById("api-key-input").value = apiKey || "";
+  show("setup-screen");
+}
+
+function restart() {
+  clearInterval(timerInt);
+  timeLeft = 600; doctorLog = [];
+  Object.keys(fired).forEach(k => delete fired[k]);
+  speakQ = []; speaking = false;
+  chatHistory = [
+    { role:"user", content:"[início do atendimento]" },
+    { role:"assistant", content:"Bianca: Não me lembro bem o que aconteceu... só lembro dos bombeiros chegando. Estou com uma dor forte no lado direito do peito e me sinto muito tonta." }
+  ];
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.querySelectorAll("audio").forEach(a => { try { a.pause(); a.src = ""; } catch(e){} });
+  document.getElementById("chat-area").innerHTML = `<div class="msg-system">— simulação iniciada —</div><div class="msg msg-actor"><div class="msg-sender">BIANCA · PACIENTE</div>Não me lembro bem o que aconteceu... só lembro dos bombeiros chegando. Estou com uma dor forte no lado direito do peito e me sinto muito tonta.</div>`;
+  document.getElementById("log-area").innerHTML = `<p class="small muted" style="padding:1rem 0;">Nenhuma fala registrada ainda.</p>`;
+  document.getElementById("timer").textContent = "10:00";
+  document.getElementById("timer").classList.remove("urgent");
+  show("briefing-screen");
+}
+
+function esc(t) { return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// ══ INIT ═══════════════════════════════════════════════════════════════════
+window.addEventListener("load", () => {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {};
+  }
+  if (apiKey) {
+    show("briefing-screen");
+  }
+});
+</script>
+</body>
+</html>
