@@ -348,7 +348,7 @@ async function callAI(payload){
   // 1. Supabase Edge Function (best: no CORS, key stays server-side)
   if(SUPA_URL && SUPA_KEY){
     try{
-      var res = await supaFetch('/functions/v1/ai-proxy', {
+      var res = await supaFetch('/functions/ai-proxy', {
         method: 'POST',
         body: JSON.stringify(payload)
       });
