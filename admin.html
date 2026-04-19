@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revalida — Gerenciar Estações</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#181c26;--bg3:#1e2332;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--text:#e8eaf0;--text2:#8b91a8;--text3:#555c72;--accent:#4fc3f7;--accent2:#0288d1;--green:#66bb6a;--red:#ef5350;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--r:8px;--rl:12px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.app{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
+h1{font-size:1.6rem;font-weight:600;letter-spacing:-.02em}
+h2{font-size:1.1rem;font-weight:500}
+.muted{color:var(--text2)}.small{font-size:.8rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:.875rem}
+.clabel{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+button{cursor:pointer;font-family:var(--sans)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;font-size:.875rem;font-weight:500;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{background:var(--bg3)}
+.btn:active{transform:scale(.98)}
+.btn-p{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.btn-p:hover{background:#0399d4}
+.btn-d{border-color:rgba(239,83,80,.4);color:var(--red)}
+.btn-d:hover{background:rgba(239,83,80,.1)}
+.btn-sm{padding:5px 12px;font-size:.8rem}
+.ilabel{font-size:.8rem;color:var(--text2);margin-bottom:.4rem;display:block;margin-top:1rem}
+.ilabel:first-child{margin-top:0}
+.ilabel .req{color:var(--red);margin-left:2px}
+.tinput{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:.875rem;transition:border-color .15s}
+.tinput:focus{outline:none;border-color:var(--accent)}
+select.tinput{cursor:pointer}
+textarea.tinput{resize:vertical;font-family:var(--sans);font-size:.875rem;line-height:1.7}
+.ta-sm{min-height:80px}
+.ta-md{min-height:140px}
+.ta-lg{min-height:220px}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);gap:1rem}
+.srow:last-child{border-bottom:none}
+.srow .area{font-family:var(--mono);font-size:.68rem;color:var(--text3);margin-bottom:2px}
+.srow .name{font-size:.9rem;font-weight:500}
+.srow .actions{display:flex;gap:8px;flex-shrink:0}
+.section-header{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;padding:.75rem 0 .25rem;border-top:1px solid var(--border);margin-top:1rem}
+.section-header:first-child{border-top:none;margin-top:0;padding-top:0}
+.img-zone{border:1px dashed var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;font-size:.85rem;color:var(--text2);cursor:pointer;transition:border-color .15s;margin-top:.875rem}
+.img-zone:hover{border-color:var(--accent)}
+.img-previews{display:flex;flex-wrap:wrap;gap:8px;margin-top:.75rem}
+.img-prev{position:relative;width:80px;height:80px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.img-prev img{width:100%;height:100%;object-fit:cover}
+.img-prev button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;width:18px;height:18px;border-radius:3px;font-size:11px;cursor:pointer}
+.checklist-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:.75rem;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)}
+.checklist-row .num{font-family:var(--mono);font-size:.75rem;color:var(--text3);padding-top:12px;min-width:24px}
+.checklist-row .fields{flex:1;display:grid;gap:8px}
+.checklist-row input,.checklist-row select,.checklist-row textarea{width:100%;padding:7px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:.8rem}
+.checklist-row textarea{resize:vertical;min-height:52px;font-family:var(--mono);font-size:.75rem}
+.checklist-row select{cursor:pointer}
+.checklist-row .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.del-row{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:4px;margin-top:8px}
+.del-row:hover{color:var(--red)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.tip{font-size:.75rem;color:var(--text3);margin-top:.35rem;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+    <div>
+      <div style="font-family:var(--mono);font-size:.7rem;color:var(--text3);letter-spacing:.15em;margin-bottom:.35rem">REVALIDA &middot; OSCE</div>
+      <h1>Gerenciar Estações</h1>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" id="btn-new">+ Nova estação</button>
+      <button class="btn" id="btn-regen-all" title="Regenera os padrões de reconhecimento de todas as estações usando a lógica atualizada">&#9881; Regenerar padrões</button>
+      <button class="btn" id="btn-gen-ai" style="background:rgba(100,181,246,.12);border-color:rgba(100,181,246,.4);color:var(--accent)">&#10024; Gerar com IA</button>
+      <a href="index.html" class="btn">&larr; Simulador</a>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div id="list-view">
+    <!-- DB Status -->
+    <div id="db-status" class="card" style="margin-bottom:.75rem;display:none">
+      <div id="db-status-msg" style="font-size:.875rem"></div>
+    </div>
+    <div class="card">
+      <div class="clabel">Estações cadastradas</div>
+      <div id="station-rows"><p class="small muted" style="padding:.5rem 0">Nenhuma estação ainda.</p></div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div id="form-view" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+      <h2 id="form-title">Nova estação</h2>
+      <button class="btn" id="btn-cancel">&larr; Voltar</button>
+    </div>
+
+    <!-- IMPORT BOX -->
+    <div id="import-box" class="card" style="border-color:rgba(79,195,247,.3);background:rgba(79,195,247,.04)">
+      <div class="clabel" style="color:var(--accent)">&#9889; Importar automaticamente</div>
+      <p style="font-size:.875rem;color:var(--text2);margin-bottom:.75rem">Cole abaixo o texto completo da estação (qualquer formato). O sistema vai identificar e preencher todos os campos automaticamente.</p>
+      <textarea id="import-text" class="tinput" style="min-height:160px;font-size:.8rem" placeholder="Cole aqui o texto da estação — cenário, caso clínico, orientações ao ator, exames, checklist PEP..."></textarea>
+      <div style="display:flex;gap:10px;margin-top:.75rem;flex-wrap:wrap">
+        <button class="btn btn-p" id="btn-import">&#9889; Preencher campos automaticamente</button>
+        <button class="btn" id="btn-clear-import">Limpar</button>
+      </div>
+      <p id="import-status" style="font-size:.8rem;color:var(--green);margin-top:.5rem;display:none"></p>
+    </div>
+
+    <div class="card">
+
+      <!-- IDENTIFICAÇÃO -->
+      <div class="section-header">Identificação</div>
+      <label class="ilabel" style="margin-top:.5rem">Área <span class="req">*</span></label>
+      <select id="f-area" class="tinput">
+        <option>Clínica</option>
+        <option>Cirurgia</option>
+        <option>Ginecologia</option>
+        <option>Pediatria</option>
+        <option>Medicina de Família/Comunidade</option>
+      </select>
+      <label class="ilabel">Nome da estação <span class="req">*</span></label>
+      <input type="text" id="f-name" class="tinput" placeholder="Ex: Atendimento Inicial do Trauma — Pneumotórax Hipertensivo">
+      <label class="ilabel">Nível de atenção</label>
+      <input type="text" id="f-nivel" class="tinput" placeholder="Ex: Atenção secundária à saúde">
+      <label class="ilabel">Local / Tipo de unidade</label>
+      <input type="text" id="f-local" class="tinput" placeholder="Ex: Unidade de pronto socorro">
+      <label class="ilabel">Infraestrutura disponível</label>
+      <textarea id="f-infra" class="tinput ta-sm" placeholder="Ex: Radiologia convencional; Laboratório; Centro cirúrgico...&#10;Sem plantão de ortopedia."></textarea>
+
+      <!-- CASO CLÍNICO -->
+      <div class="section-header">Caso clínico</div>
+      <label class="ilabel" style="margin-top:.5rem">Descrição do caso <span class="req">*</span></label>
+      <textarea id="f-caso" class="tinput ta-lg" placeholder="Descreva a situação clínica apresentada ao médico revalidando..."></textarea>
+      <label class="ilabel">Orientações ao médico</label>
+      <textarea id="f-orient-med" class="tinput ta-md" placeholder="Liste as tarefas que o médico deve executar durante o atendimento..."></textarea>
+
+      <!-- ATOR / ATRIZ -->
+      <div class="section-header">Ator / Atriz</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:.5rem">
+        <div>
+          <label class="ilabel" style="margin-top:0">Nome <span class="req">*</span></label>
+          <input type="text" id="f-p-nome" class="tinput" placeholder="Bianca">
+        </div>
+        <div>
+          <label class="ilabel" style="margin-top:0">Idade</label>
+          <input type="text" id="f-p-idade" class="tinput" placeholder="25">
+        </div>
+        <div>
+          <label class="ilabel" style="margin-top:0">Profissão</label>
+          <input type="text" id="f-p-prof" class="tinput" placeholder="Advogada">
+        </div>
+        <div>
+          <label class="ilabel" style="margin-top:0">Estado civil</label>
+          <input type="text" id="f-p-civil" class="tinput" placeholder="Solteira">
+        </div>
+      </div>
+      <label class="ilabel">Queixa principal (fala do paciente)</label>
+      <input type="text" id="f-p-queixa" class="tinput" placeholder="Ex: Estou com dor forte no lado direito do peito e me sinto tonta">
+      <label class="ilabel">Orientações ao ator/atriz</label>
+      <textarea id="f-orient-ator" class="tinput ta-md" placeholder="Instruções detalhadas de como o ator deve se comportar, o que sabe, o que não sabe, como reagir a cada situação...&#10;&#10;Ex: Não se lembra do acidente, só lembra dos bombeiros chegando. Está com dor intensa ao respirar. Está com medo. Responder apenas o que for perguntado."></textarea>
+
+      <!-- EXAMES -->
+      <div class="section-header">Exames / Impressos</div>
+      <p class="tip" style="margin-top:.5rem">Cada impresso é entregue ao médico somente quando solicitado. Os dados não são lidos em voz alta.</p>
+      <div id="exams-container"></div>
+      <button class="btn" id="btn-add-exam" style="margin-top:.75rem">+ Adicionar impresso</button>
+
+      <!-- CHECKLIST PEP -->
+      <div class="section-header">Checklist PEP</div>
+      <p class="tip" style="margin-top:.5rem">Cada item define um critério de avaliação. Os padrões de reconhecimento usam expressões regulares aplicadas sobre a fala normalizada (sem acentos, minúsculas).</p>
+      <div id="cl-container" style="margin-top:.75rem"></div>
+      <button class="btn" id="btn-add-cl" style="margin-top:.75rem">+ Adicionar item</button>
+
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:.5rem">
+      <button class="btn btn-p" id="btn-save">Salvar estação</button>
+      <button class="btn" id="btn-cancel2">&larr; Cancelar</button>
+    </div>
+    <input type="hidden" id="f-id">
+  </div>
+</div>
+
+<script>
+// ── SUPABASE ────────────────────────────────────────────────────────────────
+var SUPA_URL = localStorage.getItem('rv_supa_url') || '';
+var SUPA_KEY = localStorage.getItem('rv_supa_key') || '';
+
+async function supaFetch(path, opts){
+  if(!SUPA_URL || !SUPA_KEY) throw new Error('Supabase não configurado');
+  var url = SUPA_URL.replace(/\/+$/,'') + path;
+  var headers = {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+  if(opts && opts.headers) Object.assign(headers, opts.headers);
+  return fetch(url, Object.assign({}, opts, {headers:headers}));
+}
+
+async function getStations(){
+  if(SUPA_URL && SUPA_KEY){
+    try{
+      var res = await supaFetch('/rest/v1/stations?select=id,area,name&order=name');
+      if(res.ok) return await res.json();
+    }catch(e){ console.warn('Supabase error:', e); }
+  }
+  try{ return JSON.parse(localStorage.getItem('rv_stations')||'[]'); }catch(e){ return []; }
+}
+
+async function saveStationDB(obj){
+  if(SUPA_URL && SUPA_KEY){
+    try{
+      var eid2 = obj._editId; // original DB id for updates
+      var sendObj = Object.assign({}, obj);
+      delete sendObj._editId;
+      var isNew = !eid2;
+      if(isNew) delete sendObj.id; // let Supabase generate UUID
+      var method = isNew ? 'POST' : 'PATCH';
+      var path = isNew
+        ? '/rest/v1/stations'
+        : '/rest/v1/stations?id=eq.'+encodeURIComponent(eid2);
+      var res = await supaFetch(path, {
+        method: method,
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify(sendObj)
+      });
+      if(res.ok){
+        var arr = await res.json();
+        return Array.isArray(arr) ? arr[0] : arr;
+      }
+      var errBody = await res.text();
+      var hint = '';
+      if(res.status===404) hint = ' — Tabela não encontrada. Execute o supabase-setup.sql no SQL Editor do Supabase.';
+      else if(res.status===401||res.status===403) hint = ' — Chave inválida ou permissão negada. Verifique a chave anon/public.';
+      else if(res.status===0) hint = ' — Projeto pausado? Acesse supabase.com e verifique.';
+      throw new Error('Supabase erro '+res.status+hint+' ('+errBody.substring(0,80)+')');
+    }catch(e){
+      console.error('Supabase save failed:', e);
+      throw e;
+    }
+  }
+  // Fallback: localStorage
+  var stations;
+  try{ stations = JSON.parse(localStorage.getItem('rv_stations')||'[]'); }catch(e){ stations=[]; }
+  if(!obj.id) obj.id = String(Date.now());
+  var idx = stations.findIndex(function(s){ return String(s.id)===String(obj.id); });
+  if(idx>=0) stations[idx]=obj; else stations.push(obj);
+  localStorage.setItem('rv_stations',JSON.stringify(stations));
+  return obj;
+}
+
+async function deleteStationDB(id){
+  if(SUPA_URL && SUPA_KEY){
+    try{
+      var res = await supaFetch('/rest/v1/stations?id=eq.'+encodeURIComponent(id), {method:'DELETE'});
+      if(res.ok) return true;
+    }catch(e){ console.warn('Supabase delete failed:', e); }
+  }
+  // Fallback: localStorage
+  try{
+    var stations = JSON.parse(localStorage.getItem('rv_stations')||'[]');
+    localStorage.setItem('rv_stations', JSON.stringify(stations.filter(function(s){ return String(s.id)!==String(id); })));
+  }catch(e){}
+  return true;
+}
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escHtml(t){ return esc(t||''); }
+var editImages=[];
+
+// ── LIST ──────────────────────────────────────────────────────────────────────
+function showList(){
+  document.getElementById('list-view').style.display='block';
+  document.getElementById('form-view').style.display='none';
+  renderList();
+}
+async function renderList(){
+  var el=document.getElementById('station-rows');
+  var dbEl=document.getElementById('db-status');
+  var dbMsg=document.getElementById('db-status-msg');
+  el.innerHTML='<p class="small muted" style="padding:.5rem 0">Carregando...</p>';
+
+  // Test Supabase connection
+  if(SUPA_URL && SUPA_KEY){
+    try{
+      var test = await supaFetch('/rest/v1/stations?select=id&limit=1');
+      if(test.ok){
+        dbEl.style.display='none'; // connected OK
+      } else {
+        var errBody = await test.text();
+        dbEl.style.display='block';
+        dbEl.style.borderColor='rgba(255,167,38,.4)';
+        dbMsg.innerHTML='<span style="color:var(--yellow)">&#9888; Supabase conectado mas retornou erro '+test.status+'.</span> '
+          + (test.status===401||test.status===403 ? 'Verifique a chave anon/public.' : 'Verifique se o SQL de criação da tabela foi executado.')
+          + '<br><small style="color:var(--text3)">'+escHtml(errBody.substring(0,120))+'</small>';
+      }
+    } catch(e){
+      dbEl.style.display='block';
+      dbEl.style.borderColor='rgba(239,83,80,.4)';
+      dbMsg.innerHTML='<span style="color:var(--red)">&#10005; Não foi possível conectar ao Supabase.</span> '
+        + 'Possíveis causas:<br>'
+        + '&bull; Projeto pausado — acesse <a href="'+SUPA_URL+'" target="_blank">supabase.com</a> e reative o projeto<br>'
+        + '&bull; URL ou chave incorreta — verifique em Project Settings &rarr; API<br>'
+        + '&bull; Tabela não criada — execute o arquivo <strong>supabase-setup.sql</strong> no SQL Editor<br>'
+        + '<small style="color:var(--text3)">Erro: '+escHtml(e.message)+'</small>';
+    }
+  } else {
+    dbEl.style.display='block';
+    dbEl.style.borderColor='rgba(255,167,38,.3)';
+    dbMsg.innerHTML='<span style="color:var(--yellow)">&#9888; Supabase não configurado.</span> '
+      + 'Acesse o simulador (index.html) &rarr; Chaves API para configurar. Usando armazenamento local.';
+  }
+
+  var stations;
+  try{ stations = await getStations(); }catch(e){ stations=[]; }
+  if(!stations.length){el.innerHTML='<p class="small muted" style="padding:.5rem 0">Nenhuma estação ainda.</p>';return;}
+  el.innerHTML=stations.map(function(s){
+    return '<div class="srow">'
+      +'<div><div class="area">'+esc(s.area)+'</div><div class="name">'+esc(s.name)+'</div></div>'
+      +'<div class="actions">'
+      +'<button class="btn btn-sm" onclick="showForm(\''+s.id+'\')">Editar</button>'
+      +'<button class="btn btn-sm btn-d" onclick="deleteStation(\''+s.id+'\')">Excluir</button>'
+      +'</div></div>';
+  }).join('');
+}
+async function deleteStation(id){
+  if(!confirm('Excluir esta estação?'))return;
+  try{ await deleteStationDB(id); }catch(e){ alert('Erro ao excluir: '+e.message); return; }
+  renderList();
+}
+
+// ── FORM ──────────────────────────────────────────────────────────────────────
+async function showForm(id){
+  document.getElementById('list-view').style.display='none';
+  document.getElementById('form-view').style.display='block';
+  editImages=[];
+  document.getElementById('exams-container').innerHTML='';
+  document.getElementById('cl-container').innerHTML='';
+
+  if(id){
+    var s = null;
+    // Fetch full station data from Supabase
+    if(SUPA_URL && SUPA_KEY){
+      try{
+        var res = await supaFetch('/rest/v1/stations?id=eq.'+encodeURIComponent(id)+'&select=*&limit=1');
+        if(res.ok){ var arr=await res.json(); if(arr&&arr.length) s=arr[0]; }
+      }catch(e){ console.warn('Supabase fetch for edit failed:', e); }
+    }
+    // Fallback to localStorage
+    if(!s){
+      try{
+        var all=JSON.parse(localStorage.getItem('rv_stations')||'[]');
+        s=all.find(function(x){return String(x.id)===String(id);});
+      }catch(e){}
+    }
+    if(!s){ alert('Estação não encontrada.'); showList(); return; }
+    document.getElementById('form-title').textContent='Editar estação';
+    document.getElementById('f-id').value=id;
+    document.getElementById('f-area').value=s.area||'Clínica';
+    document.getElementById('f-name').value=s.name||'';
+    document.getElementById('f-nivel').value=s.nivel||'';
+    document.getElementById('f-local').value=s.local||'';
+    document.getElementById('f-infra').value=s.infra||'';
+    document.getElementById('f-caso').value=s.caso||'';
+    document.getElementById('f-orient-med').value=s.orientMed||'';
+    document.getElementById('f-p-nome').value=s.pNome||'';
+    document.getElementById('f-p-idade').value=s.pIdade||'';
+    document.getElementById('f-p-prof').value=s.pProf||'';
+    document.getElementById('f-p-civil').value=s.pCivil||'';
+    document.getElementById('f-p-queixa').value=s.pQueixa||'';
+    document.getElementById('f-orient-ator').value=s.orientAtor||'';
+    (s.exams||[]).forEach(function(ex){addExamRow(ex);});
+    (s.checklist||[]).forEach(function(cl){addClRow(cl);});
+    editImages=(s.images||[]).slice();
+    editImages.forEach(function(img,i){renderImgPreview(img,i);});
+  } else {
+    document.getElementById('form-title').textContent='Nova estação';
+    document.getElementById('f-id').value='';
+    ['f-area','f-name','f-nivel','f-local','f-infra','f-caso','f-orient-med',
+     'f-p-nome','f-p-idade','f-p-prof','f-p-civil','f-p-queixa','f-orient-ator']
+    .forEach(function(id){
+      var el=document.getElementById(id);
+      if(el.tagName==='SELECT')el.selectedIndex=0; else el.value='';
+    });
+  }
+}
+
+// ── EXAMS ─────────────────────────────────────────────────────────────────────
+var examCount=0;
+function addExamRow(data){
+  examCount++;
+  var idx=examCount;
+  var d=document.createElement('div');
+  d.id='exam-row-'+idx;
+  d.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:.75rem';
+  d.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">'
+    +'<span style="font-family:var(--mono);font-size:.75rem;color:var(--accent)">Impresso '+idx+'</span>'
+    +'<button class="btn btn-sm btn-d" onclick="removeExam('+idx+')">Remover</button></div>'
+    +'<label class="ilabel" style="margin-top:0">Título do impresso</label>'
+    +'<input type="text" class="tinput exam-title" placeholder="Ex: Exame Físico" value="'+(data&&data.title?esc(data.title):'')+'">'
+    +'<label class="ilabel">Dados (um por linha: Parâmetro: valor)</label>'
+    +'<textarea class="tinput ta-md exam-rows" placeholder="PA: 120x90 mmHg&#10;FC: 125 bpm&#10;FR: 32 irpm&#10;SatO2: 88%">'+(data&&data.rows?esc(data.rows.join('\n')):data&&data.rowsText?esc(data.rowsText):'')+'</textarea>'
+    +'<label class="ilabel">Imagens (opcional)</label>'
+    +'<div class="img-zone" onclick="document.getElementById(\'img-input-'+idx+'\').click()">Clique para adicionar imagens</div>'
+    +'<input type="file" id="img-input-'+idx+'" accept="image/*" multiple style="display:none" onchange="handleExamImages('+idx+',this.files)">'
+    +'<div class="img-previews" id="exam-imgs-'+idx+'"></div>';
+  document.getElementById('exams-container').appendChild(d);
+  if(data&&data.images){
+    data.images.forEach(function(src){
+      var prev=document.getElementById('exam-imgs-'+idx);
+      var pd=document.createElement('div');pd.className='img-prev';
+      pd.innerHTML='<img src="'+src+'">';
+      prev.appendChild(pd);
+    });
+  }
+}
+function removeExam(idx){document.getElementById('exam-row-'+idx).remove();}
+function handleExamImages(idx,files){
+  var prev=document.getElementById('exam-imgs-'+idx);
+  Array.from(files).forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(e){
+      var pd=document.createElement('div');pd.className='img-prev';
+      pd.innerHTML='<img src="'+e.target.result+'">';
+      prev.appendChild(pd);
+    };
+    r.readAsDataURL(f);
+  });
+}
+document.getElementById('btn-add-exam').addEventListener('click',function(){addExamRow(null);});
+
+// ── CHECKLIST ─────────────────────────────────────────────────────────────────
+var clCount=0;
+// Auto-extract subitens from item text (e.g. "(1) texto; (2) texto; (3) texto")
+function autoExtractSubitens(text){
+  if(!text) return '';
+  var matches = [];
+  var NLchar = String.fromCharCode(10);
+  text.replace(new RegExp('\\(\\d+\\)\\s*([^(]+)', 'g'), function(m, txt){
+    var clean = txt.replace(/[;,]\s*$/, '').trim();
+    if(clean.length > 3) matches.push(clean);
+  });
+  return matches.join(NLchar);
+}
+
+function buildCriterioInputs(idx, tipo, crit_adeq, crit_parc, crit_inad){
+  var html = '<div style="margin-top:.5rem;display:flex;flex-direction:column;gap:.35rem">';
+  html += '<label class="ilabel" style="font-size:.72rem;margin-top:0">Descri\u00e7\u00e3o dos crit\u00e9rios de pontua\u00e7\u00e3o</label>';
+  html += '<div style="display:flex;gap:6px;align-items:center">'
+        + '<span style="font-size:.72rem;color:var(--green);min-width:70px;font-weight:500">Adequado:</span>'
+        + '<input type="text" placeholder="Ex: Realiza as tr\u00eas a\u00e7\u00f5es" value="'+crit_adeq+'" class="cl-crit-adeq tinput" style="font-size:.78rem;flex:1"></div>';
+  html += '<div style="display:'+(tipo===1?'flex':'none')+';gap:6px;align-items:center" id="cl-crit-parc-row-'+idx+'">'
+        + '<span style="font-size:.72rem;color:var(--yellow);min-width:70px;font-weight:500">Parcial:</span>'
+        + '<input type="text" placeholder="Ex: Realiza duas a\u00e7\u00f5es" value="'+crit_parc+'" class="cl-crit-parc tinput" style="font-size:.78rem;flex:1"></div>';
+  html += '<div style="display:flex;gap:6px;align-items:center">'
+        + '<span style="font-size:.72rem;color:var(--red);min-width:70px;font-weight:500">Inadequado:</span>'
+        + '<input type="text" placeholder="Ex: N\u00e3o realiza" value="'+crit_inad+'" class="cl-crit-inad tinput" style="font-size:.78rem;flex:1"></div>';
+  html += '</div>';
+  return html;
+}
+
+function addClRow(data){
+  clCount++;
+  var idx=clCount;
+  var d=document.createElement('div');
+  d.id='cl-row-'+idx;
+  d.className='checklist-row';
+
+  var tipo=(data&&data.scores&&data.scores.length===3)?1:0;
+  // Read saved fields; if missing (old station), auto-extract from text
+  var rawText   = data&&data.text ? data.text : '';
+  var subitens  = data&&data.subitens  ? data.subitens  : autoExtractSubitens(rawText);
+  var crit_adeq = data&&data.crit_adeq ? data.crit_adeq : '';
+  var crit_parc = data&&data.crit_parc ? data.crit_parc : '';
+  var crit_inad = data&&data.crit_inad ? data.crit_inad : '';
+  // Also infer crit labels from labels array when missing
+  if(!crit_adeq && data&&data.labels) crit_adeq = data.labels[data.labels.length-1]||'';
+  if(!crit_inad && data&&data.labels) crit_inad = data.labels[0]||'';
+  if(!crit_parc && data&&data.labels&&data.labels.length===3) crit_parc = data.labels[1]||'';
+  subitens  = esc(subitens);
+  crit_adeq = esc(crit_adeq);
+  crit_parc = esc(crit_parc);
+  crit_inad = esc(crit_inad);
+
+  d.innerHTML=
+     '<div class="num">'+idx+'</div>'
+    +'<div class="fields">'
+    +'<label class="ilabel" style="margin-top:0;font-size:.72rem">Texto do crit\u00e9rio de avalia\u00e7\u00e3o</label>'
+    +'<input type="text" placeholder="Ex: Apresenta-se ao paciente" value="'+(data&&data.text?esc(data.text):'')+'" class="cl-text">'
+    +'<label class="ilabel" style="font-size:.72rem">Itens considerados para a pontua\u00e7\u00e3o (um por linha)</label>'
+    +'<textarea rows="3" placeholder="Ex:&#10;Cumprimenta com empatia;&#10;Pergunta nome ou idade;&#10;Pergunta estado emocional." class="cl-subitens tinput" style="font-size:.8rem;resize:vertical">'+subitens+'</textarea>'
+    +'<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-top:.5rem">'
+    +'<div style="flex:1;min-width:180px">'
+    +'<label class="ilabel" style="font-size:.72rem;margin-top:0">Tipo de pontua\u00e7\u00e3o</label>'
+    +'<select class="cl-tipo" onchange="updateClScores('+idx+')">'
+    +'<option'+(tipo===0?' selected':'')+'>Bin\u00e1rio (Adequado/Inadequado)</option>'
+    +'<option'+(tipo===1?' selected':'')+'>Tr\u00eas n\u00edveis (Adequado/Parcial/Inadequado)</option>'
+    +'</select></div>'
+    +'<div id="cl-scores-'+idx+'" style="flex:1;min-width:200px">'
+    +buildScoreInputs(idx,tipo,data)
+    +'</div></div>'
+    +buildCriterioInputs(idx,tipo,crit_adeq,crit_parc,crit_inad)
+    +'<details style="margin-top:.5rem"><summary style="font-size:.72rem;color:var(--text3);cursor:pointer">&#9881; Padr\u00f5es regex (avan\u00e7ado)</summary>'
+    +'<div style="margin-top:.4rem">'
+    +'<input type="text" placeholder="Padr\u00f5es de reconhecimento (gerado automaticamente)" value="'+(data&&data.kwRaw?esc(data.kwRaw):'')+'" class="cl-kw" style="font-size:.75rem;font-family:var(--mono)">'
+    +'<input type="text" placeholder="Padr\u00f5es parciais (opcional)" value="'+(data&&data.partialRaw?esc(data.partialRaw):'')+'" class="cl-partial" style="font-size:.75rem;font-family:var(--mono);margin-top:.35rem">'
+    +'</div></details>'
+    +'</div>'
+    +'<button class="del-row" onclick="removeCl('+idx+')" title="Remover">&#10005;</button>';
+  document.getElementById('cl-container').appendChild(d);
+}
+
+function buildScoreInputs(idx,tipo,data){
+  if(tipo===0){
+    var s0=data&&data.scores?data.scores[0]:0;
+    var s1=data&&data.scores?data.scores[data.scores.length-1]:0;
+    return '<div style="display:flex;gap:6px;align-items:center">'
+      +'<span style="font-size:.75rem;color:var(--text3)">Inad:</span><input type="number" step=".05" style="width:60px" value="'+s0+'" class="cl-s0">'
+      +'<span style="font-size:.75rem;color:var(--text3)">Adeq:</span><input type="number" step=".05" style="width:60px" value="'+s1+'" class="cl-s1">'
+      +'</div>';
+  } else {
+    var s0=data&&data.scores?data.scores[0]:0;
+    var s1=data&&data.scores&&data.scores.length>=3?data.scores[1]:0;
+    var s2=data&&data.scores&&data.scores.length>=3?data.scores[2]:0;
+    return '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'
+      +'<span style="font-size:.72rem;color:var(--text3)">Inad:</span><input type="number" step=".05" style="width:52px" value="'+s0+'" class="cl-s0">'
+      +'<span style="font-size:.72rem;color:var(--text3)">Parc:</span><input type="number" step=".05" style="width:52px" value="'+s1+'" class="cl-s1">'
+      +'<span style="font-size:.72rem;color:var(--text3)">Adeq:</span><input type="number" step=".05" style="width:52px" value="'+s2+'" class="cl-s2">'
+      +'</div>';
+  }
+}
+
+function updateClScores(idx){
+  var row=document.getElementById('cl-row-'+idx);
+  var tipo=Array.from(row.querySelectorAll('.cl-tipo'))[0].selectedIndex;
+  document.getElementById('cl-scores-'+idx).innerHTML=buildScoreInputs(idx,tipo,null);
+  // Show/hide partial criterio row
+  var parcRow=document.getElementById('cl-crit-parc-row-'+idx);
+  if(parcRow) parcRow.style.display = tipo===1 ? 'flex' : 'none';
+}
+
+function removeCl(idx){document.getElementById('cl-row-'+idx).remove();}
+document.getElementById('btn-add-cl').addEventListener('click',function(){addClRow(null);});
+
+// ── SAVE ──────────────────────────────────────────────────────────────────────
+document.getElementById('btn-save').addEventListener('click',saveStation);
+async function saveStation(){
+  var area=document.getElementById('f-area').value.trim();
+  var name=document.getElementById('f-name').value.trim();
+  var caso=document.getElementById('f-caso').value.trim();
+  var pNome=document.getElementById('f-p-nome').value.trim();
+  if(!name){alert('Informe o nome da estação.');return;}
+  if(!caso){alert('Informe a descrição do caso.');return;}
+  if(!pNome){alert('Informe o nome do paciente/ator.');return;}
+
+  // Collect exams
+  var exams=[];
+  document.querySelectorAll('[id^="exam-row-"]').forEach(function(row){
+    var title=row.querySelector('.exam-title').value.trim();
+    var rowsText=row.querySelector('.exam-rows').value.trim();
+    var rows=rowsText?rowsText.split('\n').map(function(r){return r.trim();}).filter(Boolean):[];
+    var images=Array.from(row.querySelectorAll('.img-prev img')).map(function(img){return img.src;});
+    if(title||rows.length) exams.push({title:title||'Impresso',rows:rows,images:images});
+  });
+
+  // Collect checklist
+  var checklist=[];
+  document.querySelectorAll('[id^="cl-row-"]').forEach(function(row,i){
+    var text=row.querySelector('.cl-text').value.trim();
+    if(!text)return;
+    var tipo=row.querySelector('.cl-tipo').selectedIndex;
+    var s0=parseFloat(row.querySelector('.cl-s0').value)||0;
+    var s1=parseFloat(row.querySelector('.cl-s1').value)||0;
+    var scores,labels;
+    if(tipo===0){
+      scores=[s0,s1]; labels=['Inadequado','Adequado'];
+    } else {
+      var s2=parseFloat(row.querySelector('.cl-s2')?row.querySelector('.cl-s2').value:0)||0;
+      scores=[s0,s1,s2]; labels=['Inadequado','Parcialmente adequado','Adequado'];
+    }
+    var kwRaw=row.querySelector('.cl-kw').value.trim();
+    var partialRaw=row.querySelector('.cl-partial').value.trim();
+    var kw=kwRaw?kwRaw.split(',').map(function(x){return x.trim();}).filter(Boolean):[];
+    var partial=partialRaw?partialRaw.split(',').map(function(x){return x.trim();}).filter(Boolean):[];
+    var subitensEl=row.querySelector('.cl-subitens');
+    var subitens=subitensEl?subitensEl.value.trim():'';
+    var critAdeqEl=row.querySelector('.cl-crit-adeq');
+    var critParcEl=row.querySelector('.cl-crit-parc');
+    var critInadEl=row.querySelector('.cl-crit-inad');
+    var crit_adeq=critAdeqEl?critAdeqEl.value.trim():'';
+    var crit_parc=critParcEl?critParcEl.value.trim():'';
+    var crit_inad=critInadEl?critInadEl.value.trim():'';
+    checklist.push({id:String(i+1),text:text,scores:scores,labels:labels,kwRaw:kwRaw,partialRaw:partialRaw,kw:kw,partial:partial,subitens:subitens,crit_adeq:crit_adeq,crit_parc:crit_parc,crit_inad:crit_inad});
+  });
+
+  var eid=document.getElementById('f-id').value;
+  var obj={
+    id: eid||null,
+    area:area, name:name,
+    nivel:document.getElementById('f-nivel').value.trim(),
+    local:document.getElementById('f-local').value.trim(),
+    infra:document.getElementById('f-infra').value.trim(),
+    caso:caso,
+    orientMed:document.getElementById('f-orient-med').value.trim(),
+    pNome:pNome,
+    pIdade:document.getElementById('f-p-idade').value.trim(),
+    pProf:document.getElementById('f-p-prof').value.trim(),
+    pCivil:document.getElementById('f-p-civil').value.trim(),
+    pQueixa:document.getElementById('f-p-queixa').value.trim(),
+    orientAtor:document.getElementById('f-orient-ator').value.trim(),
+    exams:exams,
+    checklist:checklist,
+    images:editImages,
+    _editId: eid||null
+  };
+
+  if(eid) obj.id = eid;
+  try{
+    document.getElementById('btn-save').disabled=true;
+    document.getElementById('btn-save').textContent='Salvando...';
+    await saveStationDB(obj);
+    document.getElementById('btn-save').disabled=false;
+    document.getElementById('btn-save').textContent='Salvar estação';
+    alert('Estação salva com sucesso!');
+    showList();
+  }catch(e){
+    document.getElementById('btn-save').disabled=false;
+    document.getElementById('btn-save').textContent='Salvar estação';
+    alert('Erro ao salvar: '+e.message);
+  }
+}
+
+// ── IMAGES ────────────────────────────────────────────────────────────────────
+function renderImgPreview(img,idx){
+  var prev=document.getElementById('img-previews')||document.createElement('div');
+  var d=document.createElement('div');d.className='img-prev';d.id='prev-'+idx;
+  d.innerHTML='<img src="'+img.dataUrl+'" alt="'+esc(img.name)+'"><button onclick="removeImage('+idx+')">&#215;</button>';
+  prev.appendChild(d);
+}
+function removeImage(idx){editImages.splice(idx,1);var el=document.getElementById('prev-'+idx);if(el)el.remove();}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+document.getElementById('btn-new').addEventListener('click',function(){showForm(null);});
+document.getElementById('btn-cancel').addEventListener('click',showList);
+document.getElementById('btn-cancel2').addEventListener('click',showList);
+
+
+// ── AUTO-PARSER ───────────────────────────────────────────────────────────────
+document.getElementById('btn-import').addEventListener('click', function(){
+  var text = document.getElementById('import-text').value.trim();
+  if(!text){ alert('Cole o texto da estação primeiro.'); return; }
+  var r = parseStationText(text);
+  fillForm(r);
+  var status = document.getElementById('import-status');
+  status.style.display = 'block';
+  status.textContent = 'Preenchido automaticamente: '
+    + (r.checklist.length) + ' itens de checklist, '
+    + (r.exams.length) + ' impresso(s). Revise os campos e salve.';
+});
+document.getElementById('btn-clear-import').addEventListener('click', function(){
+  document.getElementById('import-text').value='';
+  document.getElementById('import-status').style.display='none';
+});
+
+function fillForm(r){
+  function set(id,val){ var el=document.getElementById(id); if(el&&val) el.value=val; }
+  set('f-name', r.name);
+  set('f-nivel', r.nivel);
+  set('f-local', r.local);
+  set('f-infra', r.infra);
+  set('f-caso', r.caso);
+  set('f-orient-med', r.orientMed);
+  set('f-p-nome', r.pNome);
+  set('f-p-idade', r.pIdade);
+  set('f-p-prof', r.pProf);
+  set('f-p-civil', r.pCivil);
+  set('f-p-queixa', r.pQueixa);
+  set('f-orient-ator', r.orientAtor);
+  if(r.area) document.getElementById('f-area').value = r.area;
+  // Fill exams
+  document.getElementById('exams-container').innerHTML='';
+  examCount=0;
+  r.exams.forEach(function(ex){ addExamRow(ex); });
+  // Fill checklist
+  document.getElementById('cl-container').innerHTML='';
+  clCount=0;
+  r.checklist.forEach(function(cl){ addClRow(cl); });
+}
+
+function normParse(s){
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,' ');
+}
+
+function parseStationText(text){
+  var r = {
+    name:'', area:'', nivel:'', local:'', infra:'', caso:'', orientMed:'',
+    pNome:'', pIdade:'', pProf:'', pCivil:'', pQueixa:'', orientAtor:'',
+    exams:[], checklist:[]
+  };
+
+  var NL = String.fromCharCode(10);
+  var lines = text.split(NL);
+
+  // Name — first non-empty line
+  for(var i=0;i<lines.length;i++){
+    if(lines[i].trim()){ r.name=lines[i].trim(); break; }
+  }
+
+  // Area — detect from keywords
+  var tl = normParse(text);
+  if(/ginecolog|obstetric|parto|gravidez|gestac|vaginal|vulv|mamograf|cancer de colo/.test(tl)) r.area='Ginecologia';
+  else if(/pediatr|crianca|neonat|lactente|adolesc|puberdade/.test(tl)) r.area='Pediatria';
+  else if(/cirurgi|trauma|pneumotorax|abdomen agudo|apendicite|hernia|colecistite/.test(tl)) r.area='Cirurgia';
+  else if(/familia|comunidade|ubs|atenção primaria|atencao basica|saúde da familia/.test(tl)) r.area='Medicina de Família/Comunidade';
+  else r.area='Clínica';
+
+  // Nivel
+  var m = text.match(/n[íi]vel de aten[çc][ãa]o[:\s]*([^.\n;]{3,60})/i);
+  if(m) r.nivel = m[1].trim().replace(/\.$/,'');
+
+  // Local
+  m = text.match(/tipo de atendimento[:\s]*([^.\n;A-Z\u00C0-\u00DC]{5,100})/i);
+  if(m) r.local = m[1].trim().replace(/\.$/,'');
+
+  // Infra
+  m = text.match(/(?:infraestrutura|unidade conta)[^:]*:([\s\S]*?)(?=DESCRI[CÇ][AÃ]O|tarefas|[Oo]rienta[çc]|Impresso|CHECKLIST|$)/i);
+  if(m) r.infra = m[1].replace(/\s+/g,' ').trim();
+
+  // Caso — match various section headers
+  var casoRx = /(?:DESCRI[CÇ][AÃ]O DO CASO|CASO CL[IÍ]NICO)[:\s]*([\s\S]*?)(?=Nos \d+|[Oo]rienta[çc][õo]es ao [Mm][eé]dico|[Oo]rienta[çc][õo]es ao [Pp]articipante|tarefas|dever[aá] executar|Impresso|CHECKLIST|$)/i;
+  m = text.match(casoRx);
+  if(m) r.caso = m[1].replace(/\s+/g,' ').trim();
+  // Also try "Descrição do caso" subsection
+  if(!r.caso){
+    m = text.match(/Descri[çc][ãa]o do caso[^\n]*\n([\s\S]*?)(?=[Oo]rienta|Impresso|CHECKLIST|$)/i);
+    if(m) r.caso = m[1].replace(/\s+/g,' ').trim();
+  }
+
+  // Orient Med — multiple possible headers
+  var orientMedRx = /(?:orienta[çc][õo]es ao m[eé]dico|orienta[çc][õo]es ao participante|tarefas|dever[aá] executar|o participante dever[aá])[^:\n]*:?\s*([\s\S]*?)(?=[Oo]rienta[çc][õo]es do [Aa]tor|DADOS PESSOAIS|Impresso\s*\d|CHECKLIST|ATOR\s*\/|$)/i;
+  m = text.match(orientMedRx);
+  if(m) r.orientMed = m[1].replace(/\s+/g,' ').trim();
+  // Also try matching bullet list after "Orientações ao médico" header
+  if(!r.orientMed){
+    m = text.match(/[Oo]rienta[çc][õo]es ao [Mm][eé]dico[^\n]*\n([\s\S]*?)(?=[Oo]rienta[çc][õo]es|DADOS|Impresso|CHECKLIST|$)/i);
+    if(m) r.orientMed = m[1].replace(/\s+/g,' ').trim();
+  }
+
+  // Patient name
+  m = text.match(/DADOS PESSOAIS[^:]*:?\s*-?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][a-záàâãéêíóôõúç]+)/);
+  if(m) r.pNome = m[1].trim();
+
+  // Age
+  m = text.match(/DADOS PESSOAIS[\s\S]{0,60}?(\d{1,2})\s*anos/i);
+  if(m) r.pIdade = m[1];
+
+  // Profession
+  m = text.match(/DADOS PESSOAIS[\s\S]{0,100}?\d{1,2}\s*anos[,.\s]+([^.\n\-]{3,40?}?)(?:\s*[-.]|\s*MOTIVO|$)/i);
+  if(m) r.pProf = m[1].trim().replace(/[,.]$/,'');
+
+  // Civil status
+  m = text.match(/estado civil[:\s]*([^\n;.]{3,30})/i);
+  if(m) r.pCivil = m[1].trim();
+
+  // Chief complaint
+  m = text.match(/MOTIVO DE CONSULTA[^:]*:?\s*-?\s*([\s\S]*?)(?=SOBRE|ANTECEDENTES|SE O PARTICIPANTE|$)/i);
+  if(m) r.pQueixa = m[1].replace(/\s+/g,' ').trim().replace(/^-\s*/,'').substring(0,300);
+
+  // Actor instructions
+  m = text.match(/[Oo]rienta[çc][õo]es do [Aa]tor[\s\S]{0,20}\n([\s\S]*?)(?=\nImpresso|\nCHECKLIST|$)/i);
+  if(m) r.orientAtor = m[1].trim();
+
+  // Exams
+  var examRe = /Impresso\s*\d+\s*\(([^)]+)\)([\s\S]*?)(?=Impresso\s*\d+|CHECKLIST|$)/gi;
+  var em;
+  while((em=examRe.exec(text))!==null){
+    var title = em[1].trim();
+    var block = em[2];
+    // Split on semicolons before capital letters and on newlines
+    var raw = block.replace(/;(?=[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ])/g,';\n');
+    raw = raw.replace(/\.(?=[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][a-z])/g,'.\n');
+    var rows = raw.split('\n').map(function(s){return s.trim().replace(/^[-\s]+/,'');}).filter(function(s){return s.length>2;});
+    r.exams.push({title:title, rows:rows, images:[]});
+  }
+
+  // Checklist — robust multi-format parser
+  var clStart = text.search(/(?:^|\n)\s*1\.\s+\w/);
+  if(clStart>=0){
+    var clText = text.substring(clStart);
+    var blocks = clText.split(/(?=(?:^|\n)\s*\d+\.\s)/m).filter(function(b){return /^\s*\d+\./.test(b.trim());});
+    blocks.forEach(function(block){
+      var numM = block.trim().match(/^(\d+)\.\s*/);
+      if(!numM) return;
+      var itemId = numM[1];
+
+      // ── Extract scores and labels ──────────────────────────────────────────
+      var scores = [], labels = [];
+
+      // Format A: "Adequado.*: 0,50" / "Parcialmente.*: 0,25" / "Inadequado.*: 0,00"
+      var labelRx = [
+        {rx:/inadequado[^:\n]*:\s*([\d,\.]+)/i, label:'Inadequado'},
+        {rx:/parcialmente[^:\n]*:\s*([\d,\.]+)/i, label:'Parcialmente adequado'},
+        {rx:/adequado[^:\n]*:\s*([\d,\.]+)/i, label:'Adequado'},
+      ];
+      var found = labelRx.map(function(e){
+        var m = block.match(e.rx);
+        return m ? {label:e.label, score:parseFloat(m[1].replace(',','.'))} : null;
+      }).filter(Boolean);
+      if(found.length>=2){
+        found.sort(function(a,b){return a.score-b.score;});
+        scores = found.map(function(f){return f.score;});
+        labels = found.map(function(f){return f.label;});
+      }
+
+      // Format B: "Inad: 0  Parc: 0.5  Adeq: 1.0" inline
+      if(!scores.length){
+        var m3 = block.match(/inad[^:\s]*[:\s]+([\d,\.]+)\s+parc[^:\s]*[:\s]+([\d,\.]+)\s+adeq[^:\s]*[:\s]+([\d,\.]+)/i);
+        var m2 = !m3 && block.match(/inad[^:\s]*[:\s]+([\d,\.]+)\s+adeq[^:\s]*[:\s]+([\d,\.]+)/i);
+        if(m3){
+          scores = [parseFloat(m3[1]),parseFloat(m3[2]),parseFloat(m3[3])];
+          labels = ['Inadequado','Parcialmente adequado','Adequado'];
+        } else if(m2){
+          scores = [parseFloat(m2[1]),parseFloat(m2[2])];
+          labels = ['Inadequado','Adequado'];
+        }
+      }
+
+      // Format C: standalone numeric lines
+      if(!scores.length){
+        var lines = block.split('\n');
+        var nums = [];
+        for(var li=1; li<lines.length; li++){
+          var ln = lines[li].trim();
+          if(/^[\d,\.]+$/.test(ln)){
+            var n = parseFloat(ln.replace(',','.'));
+            if(!isNaN(n)) nums.push(n);
+          }
+        }
+        if(nums.length>=2){
+          nums.sort(function(a,b){return a-b;});
+          scores = nums;
+          labels = nums.length===3
+            ? ['Inadequado','Parcialmente adequado','Adequado']
+            : ['Inadequado','Adequado'];
+        }
+      }
+
+      if(scores.length<2) return; // skip items without valid scores
+
+      // ── Extract item text ──────────────────────────────────────────────────
+      // Text is everything before the first scoring-related line
+      var textEnd = block.search(/\n\s*(?:adequado|parcialmente|inadequado|inad[:\s]|[\d,\.]+\s*$)/im);
+      var rawText = textEnd > 0 ? block.substring(0, textEnd) : block;
+      var itemText = rawText.replace(/^\d+\.\s*/,'').replace(/\s+/g,' ').trim().substring(0,300);
+      if(itemText.length < 5) return;
+
+      // Extract criterio descriptions from block
+      var crit_adeq='', crit_parc='', crit_inad='', subitens='', subMatches=[];
+      // Extract criterio descriptions and subitens by scanning block lines
+      block.split('\n').forEach(function(line){
+        var ln = line.trim();
+        var lnL = ln.toLowerCase();
+        var colon = ln.indexOf(':');
+        if(colon < 0) return;
+        var desc = ln.substring(colon+1).trim().replace(/[\d,\.]+\s*pts?\.?\s*$/i,'').trim();
+        if(desc.length < 2) return;
+        if(lnL.indexOf('adequado') === 0 && lnL.indexOf('parcialmente') < 0) crit_adeq = desc;
+        else if(lnL.indexOf('parcialmente') === 0) crit_parc = desc;
+        else if(lnL.indexOf('inadequado') === 0) crit_inad = desc;
+      });
+      // Extract subitens: find (1) text; (2) text patterns
+      var subIdx = 0;
+      itemText.replace(new RegExp('\\(' + '\\d+' + '\\)' + '\\s*([^(]+)', 'g'), function(m, txt){
+        subMatches.push(txt.replace(/[;,]\s*$/,'').trim());
+      });
+      if(subMatches.length) subitens = subMatches.join('\n');
+
+      var kw = autoPatterns(itemText);
+      r.checklist.push({
+        id: itemId, text: itemText, scores: scores, labels: labels,
+        kw: kw, kwRaw: kw.join(','), partial: [], partialRaw: '',
+        subitens: subitens, crit_adeq: crit_adeq, crit_parc: crit_parc, crit_inad: crit_inad
+      });
+    });
+  }
+
+  return r;
+}
+
+function autoPatterns(text){
+  var tl = normParse(text);
+  var patterns = [];
+
+  // Each entry: [keyword_in_item_text, [patterns_to_match_doctor_speech]]
+  var map = [
+    // Apresentação
+    ['apresent|cumprimet|boas.vind|nome.{0,8}med|diz.{0,8}nome',
+      ['meu nome (e|eh)', 'me chamo', 'sou (dr|dra|doutor|doutora|medic)', 'ola', 'bom.{0,8}(dia|tarde|noite)', 'boa.{0,8}(tarde|noite|manha)']],
+    // Nome do paciente
+    ['nome.{0,15}pacient|pergunta.{0,8}nome',
+      ['qual.{0,10}(seu|o).{0,5}nome', 'como.{0,8}se chama', 'me fala.{0,8}nome', 'fale.{0,8}nome']],
+    // Dados pessoais
+    ['\\bidade\\b(?!de|m|nto|nto)', ['qual.{0,8}(sua|a).{0,5}idade', 'quantos anos tem', 'quantos anos voce']],
+    ['profiss|trabalh|ocupa', ['profiss', 'trabalh', 'ocupa', 'o que (faz|voce faz)']],
+    ['estado.{0,5}civil|casad|solteir', ['estado.{0,5}civil', 'casad', 'solteir', 'divorc', 'viuv']],
+    // Queixa principal
+    ['queixa.{0,10}principal|motivo.{0,10}(consulta|atend)|o.que.{0,10}(traz|trouxe)',
+      ['queixa', 'motivo.{0,8}(consulta|atend)', 'o que.{0,15}(traz|trouxe|sente|aconteceu)', 'posso.{0,10}ajud', 'me (conta|fala).{0,15}(sintoma|problem|queixa)']],
+    // HDA — características
+    ['inicio|quando.{0,10}(comec|inici)|tempo.{0,8}sintoma',
+      ['quando.{0,10}(comec|inici|aparec)', 'ha.{0,6}(dias|semanas|meses)', 'desde quando', 'ha quanto tempo']],
+    ['duracao|quanto tempo',
+      ['quanto tempo', 'ha quantos', 'duracao']],
+    ['intensidad|escala|quant.{0,5}dor',
+      ['intensidad', 'escala.{0,8}(dor|0)', 'quant.{0,8}(doi|dor)']],
+    ['irradia|espalha',
+      ['irradia', 'espalha', 'vai.{0,10}outro']],
+    ['melhora|alivia',
+      ['melhora', 'alivia', 'o que.{0,10}melhora']],
+    ['piora|agrava',
+      ['piora', 'agrava', 'o que.{0,10}piora']],
+    // Sintomas gerais
+    ['febre|temperatura',   ['febre', 'temperatura', 'calafrio']],
+    ['\bdor\b',           ['\bdor\b', '\bdoi\b', 'doendo', 'doloroso']],
+    ['nausea|enjoo|vomit',  ['nausea', 'enjoo', 'vomit']],
+    ['falta.{0,6}ar|dispneia|respirac', ['falta.{0,8}ar', 'dispneia', 'respira.{0,10}(difici|mal)']],
+    // Ginecologia
+    ['corrimento|secreção|descarga', ['corrimento', 'secreç', 'descarga']],
+    ['prurido|coceira|coça|coce',    ['prurido', 'coc[ea]', 'coceira', 'coç']],
+    ['odor|cheiro|fedor',            ['odor', 'cheiro', 'fedor']],
+    ['cor.{0,15}(corriment|secreç)|esbranquic',  ['cor.{0,10}corriment', 'qual.{0,5}(a )?cor', 'esbranquic', 'amarelad']],
+    ['aspecto|consist|grumoso|cremoso', ['aspecto', 'consist', 'grosso', 'grumoso', 'cremoso']],
+    ['urinari|disuri|ardencia.{0,8}urin', ['urin', 'disuri', 'ardencia', 'doi.{0,10}urin']],
+    ['les.{0,3}(ao|oes).{0,15}extern|vesicul', ['lesao', 'ferida', 'vesicula', 'ulcera']],
+    ['dum|ultima.{0,8}menstrua|ciclo.{0,8}menstrual', ['dum', 'ultima.{0,10}menstrua', 'menstrua', 'ciclo']],
+    ['menarca', ['menarca', 'primeira.{0,10}menstrua']],
+    ['sexarca|inicio.{0,8}vida.sexual', ['sexarca', 'primeira.{0,10}relacao', 'inicio.{0,10}vida.sexual']],
+    ['vida.{0,8}sexual|parceiro', ['vida sexual', 'parceiro', 'relacao.{0,8}sexual', 'ativa.{0,8}sexual', 'tem.{0,10}(namorad|marido)']],
+    ['contraceptiv|anticoncepcional|preservativo', ['contraceptiv', 'anticoncepcional', 'preservativo', 'camisinha', 'diu']],
+    // Antecedentes
+    ['comorbidade|doenca.{0,10}cronic|diabetes|hipertensao', ['comorbidade', 'doenca.{0,10}cronic', 'diabetes', 'hipertensao']],
+    ['medicac|remedio|uso.{0,8}medicament', ['medicac', 'remedio', 'medicament', 'usa.{0,10}(remedio|medicac)']],
+    ['alergi', ['alergi', 'reacao.{0,8}(remedio|medicac)']],
+    ['cirurgia.{0,10}anterior|operac|historico.{0,10}cirurg', ['cirurgi', 'operac', 'procedimento.{0,10}cirurg']],
+    ['historico.{0,8}famil|familiar', ['familiar', 'historico.{0,8}famil', 'pai.{0,5}mae']],
+    ['tabag|etilis|alcool|fumante', ['tabag', 'etilis', 'alcool', 'fumante', 'cigarro']],
+    // Exame físico
+    ['exame.{0,10}fisic|vou.{0,8}examinar|auscultar|palpar', ['exame.{0,10}fisic', 'vou.{0,10}examinar', 'auscultar', 'palpar', 'vou.{0,10}(avaliar|verificar)']],
+    ['exame.{0,10}ginecol|inspecao.{0,8}vulv|examinar.{0,8}vulv|regiao.{0,8}vulv', ['exame.{0,10}(vulv|ginecol)', 'inspecao.{0,8}vulv', 'examinar.{0,10}(vulv|regiao)', 'vulvar', 'regiao.{0,8}(vulv|intim)']],
+    ['enfermagem|tecnica.{0,8}enferm|acompanhan', ['enfermagem', 'tecnica.{0,8}enferm', 'acompanhante']],
+    // ATLS / trauma
+    ['abcde|xabcde', ['abcde', 'xabcde']],
+    ['via.{0,6}aere|pervied', ['via.{0,8}aere', 'pervi', 'pervied']],
+    ['mascara.{0,8}oxig|oxigenio', ['mascara.{0,8}ox', 'oxigenio', 'o2']],
+    ['colar.{0,8}cervic|manut.{0,8}colar', ['colar.{0,10}cervic', 'manut.{0,8}colar', 'manter.{0,8}colar']],
+    ['acesso.{0,8}venoso|jelco|abocath', ['acesso.{0,8}venoso', 'jelco', 'abocath', 'cateter.{0,8}venoso']],
+    ['sangr|hemorragia', ['sangr', 'hemorragia', 'perda.{0,8}sangue']],
+    ['exposi|hipotermia', ['exposi', 'hipotermia', 'despir', 'tirar.{0,8}roupa']],
+    ['drenagem|toracostomia', ['drenagem.{0,10}fech', 'toracostomia', 'selo.{0,6}agua']],
+    ['puncao|descompressao|toracocentese', ['puncao', 'descompressao', 'toracocentese']],
+    ['monitor|saturac|oximetr', ['monitor', 'saturac', 'oximetr', 'spo2']],
+    ['radiograf|raio.{0,3}x', ['radiogr', 'raio.x', 'rx.{0,6}torax']],
+    ['transferenci|remocao|nao.{0,8}transfer', ['nao.{0,10}transfer', 'nao.{0,10}remov', 'nao.{0,10}remoc']],
+    // Diagnóstico
+    ['hipotese.{0,10}diagn|diagnostico.{0,10}(principal|provavel)|orienta.{0,10}diagn',
+      ['hipotese.{0,10}diagn', 'diagnostico.{0,10}(principal|provavel)', 'acredito.{0,10}(que|ser)', 'trata.{0,10}(se de|de um)', 'e um caso de']],
+    ['diagnostico.{0,8}diferenci|diferenci|outras.{0,8}hipotes',
+      ['diferencial', 'outras.{0,10}(hipotes|possibil)', 'pode.{0,10}ser', 'diagnostico.{0,10}diferenci']],
+    // Específicos
+    ['candid|fungo.{0,10}vaginal',  ['candid', 'fungo', 'candidose']],
+    ['vaginose',                    ['vaginose']],
+    ['tricomoni',                   ['tricomoni']],
+    ['\\bist\\b|\\bdst\\b|transmiss.{0,10}sexual', ['nao.{0,15}ist', 'nao.{0,15}dst', 'nao.{0,15}(transmiss|sexual)', 'ist\b', 'dst\b']],
+    ['pneumotorax|pth',             ['pneumotorax.{0,10}hiper', '\bpth\b']],
+    // Tratamento
+    ['antifungic|fluconazol|nistatina', ['antifungic', 'fluconazol', 'nistatina', 'clotrimazol']],
+    ['antibiotico|amoxicilina|metronidazol', ['antibiotico', 'amoxicilina', 'metronidazol', 'azitromicin']],
+    ['analgesic|antiespasmodic|hioscina|escopolamina|dipirona|paracetamol|ibuprofeno|buscopan',
+      // Require therapeutic context — drug name alone is not enough
+      ['(tomar|usar|indicar|prescrev|recomendar).{0,25}(analgesic|antiespasmodic|hioscina|escopolamina|dipirona|paracetamol|ibuprofeno|buscopan)',
+       '(analgesic|antiespasmodic|hioscina|escopolamina|dipirona|paracetamol|ibuprofeno|buscopan).{0,25}(dor|colica|cramp|espasmo)',
+       'pode.{0,20}(tomar|usar).{0,20}(remedio|medicac|analgesic|antiespasmodic)',
+       'classe.{0,20}(analgesic|antiespasmodic)', 'hioscina', 'escopolamina', 'dipirona', 'paracetamol']],
+    ['conduta|plano.{0,8}terapeu|prescrev', ['conduta', 'prescrev', 'plano.{0,8}terapeu', 'indicar.{0,8}tratamento']],
+    ['encaminh|referenci|especialist', ['encaminh', 'referenci', 'especialist']],
+    // Orientações
+    ['microbiota|flora.{0,8}vaginal', ['microbiota', 'flora.{0,8}(vaginal|normal)']],
+    ['fator.{0,8}(risco|predispon)|predispos', ['fator.{0,8}risco', 'predispos', 'fator.{0,8}predispon']],
+    ['higiene|calcinha|roupa.{0,8}intim', ['higiene', 'calcinha', 'roupa.{0,8}(intim|molhad)']],
+    ['retorno|acompanhamento', ['retorno', 'acompanhamento', 'retornar', 'voltar.{0,10}se']],
+    ['exame.{0,8}complement|laboratori|cultura', ['exame.{0,8}complement', 'laboratori', 'cultura.{0,8}vaginal']],
+    ['nao.{0,15}(necessari|precis).{0,15}exame|desnec|historia.{0,10}suficiente',
+      ['nao.{0,20}(necessari|precis).{0,20}exame', 'historia.{0,15}(clinica.{0,10})?suficiente', 'exame.{0,15}desnec', 'sem.{0,10}necessidade.{0,10}exame']],
+  ];
+
+  map.forEach(function(entry){
+    // Use word boundary version of key to avoid substring matches
+    // e.g. 'idade' should not match 'intensidade', 'necessidade'
+    var keyStr = entry[0];
+    // Wrap simple word keys with word boundaries automatically
+    var safeKey = keyStr.replace(/^([a-z]+)(\|[a-z]+)*$/, function(m){
+      return m.split('|').map(function(w){ return '\\b'+w+'\\b'; }).join('|');
+    });
+    try{
+      if(new RegExp(safeKey).test(tl)){
+        entry[1].forEach(function(p){
+          if(patterns.indexOf(p) < 0) patterns.push(p);
+        });
+      }
+    }catch(e){
+      // Fallback to original key if safeKey is invalid
+      if(new RegExp(keyStr).test(tl)){
+        entry[1].forEach(function(p){
+          if(patterns.indexOf(p) < 0) patterns.push(p);
+        });
+      }
+    }
+  });
+  return patterns.slice(0, 8); // increased from 5 to 8
+}
+
+window.addEventListener('load',function(){
+  SUPA_URL = localStorage.getItem('rv_supa_url') || '';
+  SUPA_KEY = localStorage.getItem('rv_supa_key') || '';
+  showList();
+});
+
+// ── AI STATION GENERATOR ────────────────────────────────────────────────────
+
+var genStationData = null;
+
+// Gen modal listeners — registered after full DOM load
+window.addEventListener('load', function(){
+  document.getElementById('btn-gen-ai').addEventListener('click', openGenModal);
+  document.getElementById('btn-gen-close').addEventListener('click', closeGenModal);
+  document.getElementById('btn-gen-cancel').addEventListener('click', closeGenModal);
+  document.getElementById('btn-gen-cancel2').addEventListener('click', closeGenModal);
+  document.getElementById('btn-gen-run').addEventListener('click', runGenStation);
+  document.getElementById('btn-gen-retry').addEventListener('click', function(){ showGenStep(1); });
+  document.getElementById('btn-gen-save').addEventListener('click', function(){ if(genStationData) fillFormFromAI(genStationData); });
+  document.getElementById('btn-regen-all').addEventListener('click', regenAllPatterns);
+});
+
+// ── REGENERATE ALL PATTERNS ──────────────────────────────────────────────────
+async function regenAllPatterns(){
+  var btn = document.getElementById('btn-regen-all');
+  btn.disabled = true;
+  btn.textContent = '⏳ Regenerando...';
+
+  try{
+    // Load all stations from Supabase
+    var stations = [];
+    if(SUPA_URL && SUPA_KEY){
+      var res = await supaFetch('/rest/v1/stations?select=*&order=name');
+      if(res.ok) stations = await res.json();
+    }
+    if(!stations.length){
+      try{ stations = JSON.parse(localStorage.getItem('rv_stations')||'[]'); }catch(e){}
+    }
+    if(!stations.length){ alert('Nenhuma estação encontrada.'); return; }
+
+    var updated = 0;
+    var errors  = 0;
+
+    for(var i=0; i<stations.length; i++){
+      var st = stations[i];
+      btn.textContent = '⏳ ' + (i+1) + '/' + stations.length + ' — ' + esc(st.name||'');
+
+      var cl = st.checklist;
+      if(!Array.isArray(cl)) continue;
+
+      // Always regenerate — force update regardless of whether data looks the same
+      cl = cl.map(function(item){
+        var newItem = Object.assign({}, item);
+
+        // 1. Fix scores: ensure numeric and sorted ascending
+        var scores = (item.scores||[]).map(function(s){ return parseFloat(s)||0; });
+        scores.sort(function(a,b){ return a-b; });
+
+        // 2. Fix labels to match score count
+        var labels;
+        if(scores.length >= 3){
+          labels = ['Inadequado','Parcialmente adequado','Adequado'];
+        } else {
+          labels = ['Inadequado','Adequado'];
+          scores = scores.slice(0,2);
+          // Ensure at least [0, something]
+          if(scores.length < 2) scores = [0, 1];
+        }
+        newItem.scores = scores;
+        newItem.labels = labels;
+
+        // 3. Regenerate kw patterns from item text
+        var newPats = autoPatterns(item.text||'');
+        newItem.kw    = newPats;
+        newItem.kwRaw = newPats.join(',');
+
+        return newItem;
+      });
+
+      // Always save (forced regeneration)
+
+      // Save back to Supabase
+      try{
+        var saveRes = await supaFetch('/rest/v1/stations?id=eq.'+encodeURIComponent(st.id), {
+          method: 'PATCH',
+          headers: { 'Prefer': 'return=minimal', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checklist: cl })
+        });
+        if(saveRes.ok || saveRes.status === 204){ updated++; }
+        else { errors++; console.warn('Failed to update', st.name, saveRes.status); }
+      } catch(e){ errors++; console.warn('Error updating', st.name, e); }
+    }
+
+    btn.disabled = false;
+    btn.textContent = '⚙ Regenerar padrões';
+    var msg = 'Concluido! ' + updated + ' estacao(oes) atualizada(s) — padroes e pontuacoes verificados';
+    if(errors) msg += ' | ' + errors + ' erro(s) — veja o console.';
+    msg += ' | Os novos padroes serao usados na proxima simulacao.';
+    alert(msg);
+    renderList();
+
+  } catch(e){
+    btn.disabled = false;
+    btn.textContent = '⚙ Regenerar padrões';
+    alert('Erro: ' + e.message);
+  }
+}
+
+function openGenModal(){
+  document.getElementById('ai-gen-modal').style.display = 'block';
+  showGenStep(1);
+  document.getElementById('gen-error').style.display = 'none';
+}
+function closeGenModal(){
+  document.getElementById('ai-gen-modal').style.display = 'none';
+}
+function showGenStep(n){
+  document.getElementById('gen-step-1').style.display = n===1?'block':'none';
+  document.getElementById('gen-step-2').style.display = n===2?'block':'none';
+  document.getElementById('gen-step-3').style.display = n===3?'block':'none';
+}
+
+async function runGenStation(){
+  var area  = document.getElementById('gen-area').value;
+  var tema  = document.getElementById('gen-tema').value.trim();
+  var nivel = document.getElementById('gen-nivel').value;
+  var extra = document.getElementById('gen-instrucoes').value.trim();
+  var errEl = document.getElementById('gen-error');
+  errEl.style.display = 'none';
+  showGenStep(2);
+
+  var msgs = ['Consultando padroes do Revalida OSCE...','Gerando caso clinico e checklist PEP...','Estruturando a estacao...','Finalizando checklist e padroes de avaliacao...'];
+  var mi = 0;
+  var msgInt = setInterval(function(){ document.getElementById('gen-loading-msg').textContent = msgs[mi%msgs.length]; mi++; }, 4000);
+
+  try{
+    var NL = '\n';
+    var systemPrompt = [
+      'Voce e especialista em elaboracao de estacoes OSCE para o Revalida (INEP).',
+      'Gera estacoes COMPLETAS e REALISTAS, baseadas nos padroes da prova pratica do Revalida.',
+      'Responda SOMENTE em JSON valido, sem markdown, sem texto antes ou depois.',
+      '',
+      'FORMATO JSON — preencha TODOS os campos:',
+      '{',
+      '  "name": "Nome descritivo da estacao",',
+      '  "area": "' + area + '",',
+      '  "nivel": "' + nivel + '",',
+      '  "local": "Ex: UPA, UBS, Pronto-Socorro, Ambulatorio",',
+      '  "infra": "Liste equipamentos disponíveis: maca, estetoscopio, otoscopio, etc.",',
+      '  "caso": "TEXTO COMPLETO do caso clinico que o medico le antes de entrar (2-4 paragrafos detalhados). Inclua: contexto, queixa principal, dados vitais se relevante, instrucao para verbalizar exame fisico.",',
+      '  "orientMed": "LISTA DAS TAREFAS que o medico deve realizar na estacao. Ex: 1. Realizar anamnese dirigida; 2. Solicitar exame fisico; 3. Solicitar exames complementares; 4. Fechar hipotese diagnostica; 5. Orientar conduta.",',
+      '  "pNome": "Nome completo do paciente/ator",',
+      '  "pIdade": "Idade em anos (numero)",',
+      '  "pProf": "Profissao do paciente",',
+      '  "pCivil": "Estado civil",',
+      '  "pQueixa": "Frase exata que o ator diz ao medico (queixa principal em 1-2 frases coloquiais)",',
+      '  "orientAtor": "INSTRUCOES DETALHADAS para o ator/atriz: historia completa, o que revelar e quando, como reagir emocionalmente, sinais fisicos a verbalizar se perguntado, informacoes que so revela se perguntado diretamente.",',
+      '  "exams": [',
+      '    {"id":"1","name":"Exame Fisico — [area especifica]","result":"Descricao detalhada dos achados do exame fisico (use formato: Parametro: valor)"},',
+      '    {"id":"2","name":"[Nome do exame complementar especifico]","result":"Resultado com valores de referencia quando aplicavel"},',
+      '    {"id":"3","name":"[Segundo exame se necessario]","result":"Resultado"}',
+      '  ],',
+      '  "checklist": [',
+      '    {',
+      '      "id": "1",',
+      '      "text": "Texto CURTO do criterio (ex: Apresentacao)",',
+      '      "subitens": "Subitem 1\nSubitem 2\nSubitem 3",',
+      '      "scores": [0, 0.1] OU [0, 0.1, 0.2],',
+      '      "labels": ["Inadequado","Adequado"] OU ["Inadequado","Parcialmente adequado","Adequado"],',
+      '      "crit_adeq": "Descricao do que e considerado Adequado",',
+      '      "crit_parc": "Descricao do Parcialmente adequado (so se 3 niveis)",',
+      '      "crit_inad": "Descricao do Inadequado",',
+      '      "kwRaw": "padrao_regex1, padrao_regex2"',
+      '    }',
+      '  ]',
+      '}',
+      '',
+      'REGRAS OBRIGATORIAS:',
+      '- orientMed: lista numerada com 4-6 tarefas especificas da estacao',
+      '- exams: minimo 2 exames — sempre incluir Exame Fisico + pelo menos 1 exame complementar relevante',
+      '- O exame fisico deve ter achados detalhados coerentes com o caso',
+      '- checklist: entre 10 e 16 itens cobrindo TODAS as fases: apresentacao, anamnese, exame fisico, interpretacao, hipotese diagnostica, conduta, orientacoes',
+      '- Itens com subitens claros devem ter 3 niveis (Inadequado/Parcial/Adequado)',
+      '- Itens binarios (fez ou nao fez) devem ter 2 niveis',
+      '- Pontuacao total entre 8 e 12 pontos',
+      '- crit_adeq/crit_parc/crit_inad: descricoes OBJETIVAS do que o medico deve fazer',
+      '- Basear nos criterios reais do INEP/Revalida para a area ' + area,
+    ].join('\n');
+
+    var userMsg = 'Gera uma estacao OSCE do Revalida. Area: ' + area + '. '
+      + (tema ? 'Tema: ' + tema + '. ' : 'Escolha tema clinicamente relevante para o Revalida. ')
+      + 'Nivel: ' + nivel + '. '
+      + (extra ? 'Instrucoes: ' + extra + '. ' : '')
+      + 'Responda APENAS o JSON.';
+
+    var res = await supaFetch('/functions/v1/quick-api', {
+      method: 'POST',
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 6000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+
+    clearInterval(msgInt);
+    if(!res.ok){ var et = await res.text(); throw new Error('API erro ' + res.status + ': ' + et.substring(0,100)); }
+
+    var data = await res.json();
+    var text = '';
+    if(data.content && data.content[0]) text = data.content[0].text || '';
+    else if(data.choices && data.choices[0]) text = data.choices[0].message.content || '';
+    text = text.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+    genStationData = JSON.parse(text);
+    renderGenPreview(genStationData);
+    showGenStep(3);
+
+  } catch(e){
+    clearInterval(msgInt);
+    showGenStep(1);
+    var errEl2 = document.getElementById('gen-error');
+    errEl2.textContent = 'Erro ao gerar: ' + e.message;
+    errEl2.style.display = 'block';
+  }
+}
+
+function renderGenPreview(d){
+  var cl = d.checklist || [];
+  var totalPts = cl.reduce(function(s,c){ return s + Math.max.apply(null, c.scores||[0]); }, 0);
+  var clHtml = cl.map(function(c,i){
+    var max = Math.max.apply(null, c.scores||[0]);
+    return '<tr><td style="padding:4px 8px;font-size:.8rem;border-bottom:1px solid var(--border)">'+(i+1)+'. '+esc(c.text.substring(0,80))+(c.text.length>80?'...':'')+'</td>'
+      +'<td style="padding:4px 8px;font-family:var(--mono);font-size:.8rem;text-align:right;border-bottom:1px solid var(--border);color:var(--text2)">'+max.toFixed(1)+'</td></tr>';
+  }).join('');
+  document.getElementById('gen-preview').innerHTML =
+    '<div style="margin-bottom:.75rem">'
+    +'<div style="font-size:1.05rem;font-weight:500;margin-bottom:2px">'+esc(d.name||'')+'</div>'
+    +'<div style="font-size:.8rem;color:var(--text2)">'+esc(d.area||'')+' &middot; '+esc(d.nivel||'')+' &middot; '+esc(d.local||'')+'</div>'
+    +'</div>'
+    +'<div style="font-size:.8rem;color:var(--text2);margin-bottom:.75rem;line-height:1.5">'+esc((d.caso||'').substring(0,200))+'...</div>'
+    +'<div style="font-size:.8rem;font-weight:500;margin-bottom:.4rem">Paciente: '+esc(d.pNome||'')+', '+esc(d.pIdade||'')+' anos &middot; '+esc(d.pQueixa||'')+'</div>'
+    +'<table style="width:100%;border-collapse:collapse;margin-top:.5rem">'
+    +'<thead><tr><th style="padding:4px 8px;font-size:.72rem;text-align:left;color:var(--text3);border-bottom:1px solid var(--border2)">CHECKLIST ('+cl.length+' itens)</th>'
+    +'<th style="padding:4px 8px;font-size:.72rem;text-align:right;color:var(--text3);border-bottom:1px solid var(--border2)">PTS</th></tr></thead>'
+    +'<tbody>'+clHtml+'</tbody>'
+    +'<tfoot><tr><td style="padding:4px 8px;font-size:.8rem;font-weight:500">Total</td>'
+    +'<td style="padding:4px 8px;font-family:var(--mono);font-size:.8rem;font-weight:500;text-align:right">'+totalPts.toFixed(1)+'</td></tr></tfoot>'
+    +'</table>';
+}
+
+function fillFormFromAI(d){
+  closeGenModal();
+  // Trigger the new station form
+  document.getElementById('btn-new').click();
+  setTimeout(function(){
+    var fields = {
+      'f-area':d.area||'','f-name':d.name||'','f-nivel':d.nivel||'',
+      'f-local':d.local||'','f-infra':d.infra||'','f-caso':d.caso||'',
+      'f-orient-med':d.orientMed||'','f-pnome':d.pNome||'','f-pidade':d.pIdade||'',
+      'f-pprof':d.pProf||'','f-pcivil':d.pCivil||'','f-pqueixa':d.pQueixa||'',
+      'f-orient-ator':d.orientAtor||''
+    };
+    Object.keys(fields).forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.value = fields[id];
+    });
+    // Exams
+    var ec = document.getElementById('exams-container');
+    if(ec && d.exams && d.exams.length){
+      ec.innerHTML='';
+      examCount=0;
+      d.exams.forEach(function(ex){
+          var title = ex.title || ex.name || ('Exame '+(ex.id||''));
+          var resultText = ex.result || ex.text || '';
+          var rows = resultText.split(/[;\n]/).map(function(r){return r.trim();}).filter(Boolean);
+          if(!rows.length) rows = [resultText];
+          addExamRow({title:title, rows:rows, images:[]});
+        });
+    }
+    // Checklist
+    var cc = document.getElementById('cl-container');
+    if(cc && d.checklist && d.checklist.length){
+      cc.innerHTML='';
+      clCount=0;
+      d.checklist.forEach(function(item){ addClRow(item); });
+    }
+    window.scrollTo(0,0);
+    // Toast
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:1rem;right:1rem;background:var(--green);color:#000;padding:.75rem 1.25rem;border-radius:var(--r);font-size:.875rem;z-index:999;font-weight:500';
+    t.textContent = '\u2713 Estacao gerada \u2014 revise e salve';
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 4000);
+  }, 300);
+}
+</script>
+
+<!-- AI STATION GENERATOR MODAL -->
+<div id="ai-gen-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;overflow-y:auto">
+  <div style="max-width:680px;margin:2rem auto;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);padding:2rem">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <div>
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--accent);letter-spacing:.1em;margin-bottom:.3rem">IA &#10024;</div>
+        <h2 style="margin:0;font-size:1.2rem">Gerar estação com IA</h2>
+      </div>
+      <button class="btn" id="btn-gen-close">&times;</button>
+    </div>
+
+    <!-- Step 1: Configuration -->
+    <div id="gen-step-1">
+      <div class="card" style="margin-bottom:1rem">
+        <div class="clabel">Área médica</div>
+        <select id="gen-area" class="tinput" style="font-family:var(--sans)">
+          <option value="Clínica">Clínica Médica</option>
+          <option value="Cirurgia">Cirurgia</option>
+          <option value="Ginecologia" selected>Ginecologia / Obstetrícia</option>
+          <option value="Pediatria">Pediatria</option>
+          <option value="Medicina de Família/Comunidade">Medicina de Família / Comunidade</option>
+        </select>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem">
+        <div class="clabel">Tema / diagnóstico</div>
+        <input type="text" id="gen-tema" class="tinput" placeholder="Ex: pré-eclâmpsia, apendicite aguda, febre reumática...">
+        <p class="snote">Deixe em branco para gerar um tema aleatório relevante para o Revalida</p>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem">
+        <div class="clabel">Dificuldade</div>
+        <select id="gen-nivel" class="tinput" style="font-family:var(--sans)">
+          <option value="Básico">Básico</option>
+          <option value="Intermediário" selected>Intermediário</option>
+          <option value="Avançado">Avançado</option>
+        </select>
+      </div>
+
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="clabel">Instruções adicionais (opcional)</div>
+        <textarea id="gen-instrucoes" class="tinput" rows="3" placeholder="Ex: incluir diagnóstico diferencial com endometrite, paciente adolescente, contexto de UBS..."></textarea>
+      </div>
+
+      <div id="gen-error" style="display:none;color:var(--red);font-size:.85rem;margin-bottom:1rem;padding:.75rem;background:rgba(239,83,80,.08);border-radius:var(--r)"></div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-p" id="btn-gen-run">&#10024; Gerar estação</button>
+        <button class="btn" id="btn-gen-cancel">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Loading -->
+    <div id="gen-step-2" style="display:none;text-align:center;padding:2rem 0">
+      <div class="spinner" style="width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem"></div>
+      <p id="gen-loading-msg" style="color:var(--text2);font-size:.9rem">Consultando bases médicas e gerando estação...</p>
+      <p class="small muted">Isso pode levar 15-30 segundos</p>
+    </div>
+
+    <!-- Step 3: Preview -->
+    <div id="gen-step-3" style="display:none">
+      <div class="card" style="margin-bottom:1rem;background:rgba(102,187,106,.06);border-color:rgba(102,187,106,.3)">
+        <div style="font-size:.8rem;color:var(--green);margin-bottom:.5rem">&#10003; Estação gerada — revise antes de salvar</div>
+        <div id="gen-preview"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-p" id="btn-gen-save">Preencher formulário &rarr;</button>
+        <button class="btn" id="btn-gen-retry">&#8635; Gerar novamente</button>
+        <button class="btn" id="btn-gen-cancel2">Cancelar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@keyframes spin{ to{ transform:rotate(360deg); } }
+</style>
+
+</body>
+</html>
